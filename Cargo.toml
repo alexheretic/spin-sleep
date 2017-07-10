@@ -6,5 +6,3 @@ description = "Accurate sleeping. Only use native sleep as far as it can be trus
 repository = "https://github.com/alexheretic/spin-sleep"
 keywords = ["sleep"]
 license = "Apache-2.0"
-
-[dependencies]
