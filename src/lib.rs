@@ -1,4 +1,4 @@
-//! Accurate sleeping using `thread::sleep` & spinning
+//! Accurate sleeping. Only use native sleep as far as it can be trusted, then spin.
 //!
 //! The problem with `thread::sleep` is it isn't always very accurate, and this error can varies
 //! on platform and state. Spinning is as accurate as we can get, but consumes the CPU
