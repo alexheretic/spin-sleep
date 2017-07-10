@@ -22,13 +22,15 @@
 //! spin_sleeper.sleep(Duration::new(1, 12_550_000));
 //! ```
 //!
-//! Sleep can also requested in f64 seconds (useful when used with `time` crate)
+//! Sleep can also requested in `f64` seconds or `u64` nanoseconds
+//! (useful when used with `time` crate)
 //!
 //! ```no_run
 //! # extern crate spin_sleep;
 //! # use std::time::Duration;
 //! # let spin_sleeper = spin_sleep::SpinSleeper::new(100_000);
 //! spin_sleeper.sleep_s(1.01255);
+//! spin_sleeper.sleep_ns(1_012_550_000);
 //! ```
 
 use std::thread;
@@ -64,11 +66,22 @@ impl SpinSleeper {
         while start.elapsed() < duration {}
     }
 
-    /// Puts the current thread to sleep and then/or spins until the specified duration has elapsed.
+    /// Puts the current thread to sleep and then/or spins until the specified
+    /// second duration has elapsed.
     pub fn sleep_s(&self, seconds: f64) {
-        self.sleep(Duration::new(
-            seconds.floor() as u64,
-            ((seconds % 1.0) * 1_000_000_000f64).round() as u32))
+        if seconds > 0.0 {
+            self.sleep(Duration::new(seconds.floor() as u64,
+                                     ((seconds % 1f64) * 1_000_000_000f64).round() as u32))
+        }
+    }
+
+    /// Puts the current thread to sleep and then/or spins until the specified
+    /// nanosecond duration has elapsed.
+    pub fn sleep_ns(&self, nanoseconds: u64) {
+        let nanoseconds: u64 = nanoseconds.into();
+        let subsec_ns = (nanoseconds % 1_000_000_000) as u32;
+        let seconds = nanoseconds / 1_000_000_000;
+        self.sleep(Duration::new(seconds, subsec_ns))
     }
 }
 
@@ -77,7 +90,7 @@ mod spin_sleep_test {
     use super::*;
 
     // The worst case error is unbounded even when spinning, but this accuracy seems reasonable
-    const ACCEPTABLE_DELTA_NS: u32 = 10_000;
+    const ACCEPTABLE_DELTA_NS: u32 = 100_000;
 
     #[test]
     fn sleep_small() {
@@ -109,5 +122,37 @@ mod spin_sleep_test {
         println!("Actual: {:?}", after.duration_since(before));
         assert!(after.duration_since(before) <= Duration::new(1, ns_duration + ACCEPTABLE_DELTA_NS));
         assert!(after.duration_since(before) >= Duration::new(1, ns_duration - ACCEPTABLE_DELTA_NS));
+    }
+
+    #[test]
+    fn sleep_s() {
+        let ns_duration = 12_345_678_f64;
+
+        let ps = SpinSleeper::new(20_000_000);
+        ps.sleep_s(0.000001); // warm up
+
+        let before = Instant::now();
+        ps.sleep_s(ns_duration / 1_000_000_000_f64);
+        let after = Instant::now();
+
+        println!("Actual: {:?}", after.duration_since(before));
+        assert!(after.duration_since(before) <= Duration::new(0, ns_duration.round() as u32 + ACCEPTABLE_DELTA_NS));
+        assert!(after.duration_since(before) >= Duration::new(0, ns_duration.round() as u32 - ACCEPTABLE_DELTA_NS));
+    }
+
+    #[test]
+    fn sleep_ns() {
+        let ns_duration: u32 = 12_345_678;
+
+        let ps = SpinSleeper::new(20_000_000);
+        ps.sleep_ns(1000); // warm up
+
+        let before = Instant::now();
+        ps.sleep_ns(ns_duration as u64);
+        let after = Instant::now();
+
+        println!("Actual: {:?}", after.duration_since(before));
+        assert!(after.duration_since(before) <= Duration::new(0, ns_duration + ACCEPTABLE_DELTA_NS));
+        assert!(after.duration_since(before) >= Duration::new(0, ns_duration - ACCEPTABLE_DELTA_NS));
     }
 }

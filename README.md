@@ -29,7 +29,10 @@ let spin_sleeper = spin_sleep::SpinSleeper::new(100_000);
 spin_sleeper.sleep(Duration::new(1, 12_550_000));
 ```
 
-Sleep can also requested in f64 seconds (useful when used with `time` crate)
+Sleep can also requested in `f64` seconds or `u64` nanoseconds
+(useful when used with `time` crate)
+
 ```rust
 spin_sleeper.sleep_s(1.01255);
+spin_sleeper.sleep_ns(1_012_550_000);
 ```
