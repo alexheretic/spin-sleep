@@ -34,7 +34,7 @@
 //! ```
 
 use std::thread;
-use std::time::{Instant, Duration};
+use std::time::{Duration, Instant};
 
 /// Accuracy container for spin sleeping
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -70,8 +70,10 @@ impl SpinSleeper {
     /// second duration has elapsed.
     pub fn sleep_s(&self, seconds: f64) {
         if seconds > 0.0 {
-            self.sleep(Duration::new(seconds.floor() as u64,
-                                     ((seconds % 1f64) * 1_000_000_000f64).round() as u32))
+            self.sleep(Duration::new(
+                seconds.floor() as u64,
+                ((seconds % 1f64) * 1_000_000_000f64).round() as u32,
+            ))
         }
     }
 
