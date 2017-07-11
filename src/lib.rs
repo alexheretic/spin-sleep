@@ -78,7 +78,6 @@ impl SpinSleeper {
     /// Puts the current thread to sleep and then/or spins until the specified
     /// nanosecond duration has elapsed.
     pub fn sleep_ns(&self, nanoseconds: u64) {
-        let nanoseconds: u64 = nanoseconds.into();
         let subsec_ns = (nanoseconds % 1_000_000_000) as u32;
         let seconds = nanoseconds / 1_000_000_000;
         self.sleep(Duration::new(seconds, subsec_ns))
