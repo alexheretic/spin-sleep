@@ -6,6 +6,7 @@ spin_sleep
   <img src="https://docs.rs/spin_sleep/badge.svg">
 </a>
 ==========
+
 Accurate sleeping. Only use native sleep as far as it can be trusted, then spin.
 
 The problem with `thread::sleep` is it isn't always very accurate, and this accuracy varies
