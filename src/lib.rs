@@ -5,7 +5,7 @@
 //! rather ungracefully.
 //!
 //! This library adds a middle ground, using a configurable native accuracy setting allowing
-//! thread::sleep to wait the bulk of a sleep time, and spin the final section to guarantee
+//! `thread::sleep` to wait the bulk of a sleep time, and spin the final section to guarantee
 //! accuracy.
 //!
 //! # Examples

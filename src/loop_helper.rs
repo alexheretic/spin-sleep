@@ -174,7 +174,7 @@ impl LoopHelper {
     pub fn report_rate(&mut self) -> Option<RatePerSecond> {
         let now = Instant::now();
         if now.duration_since(self.last_report) > self.report_interval && self.delta_count > 0 {
-            let report = Some((1.0 / (self.delta_sum.to_f64_secs() / self.delta_count as f64)));
+            let report = Some(1.0 / (self.delta_sum.to_f64_secs() / self.delta_count as f64));
             self.delta_sum = Duration::from_secs(0);
             self.delta_count = 0;
             self.last_report = now;
