@@ -1,8 +1,12 @@
 [package]
 name = "spin_sleep"
-version = "0.2.1"
+version = "0.3.0"
 authors = ["Alex Butler <alexheretic@gmail.com>"]
 description = "Accurate sleeping. Only use native sleep as far as it can be trusted, then spin."
 repository = "https://github.com/alexheretic/spin-sleep"
 keywords = ["sleep"]
 license = "Apache-2.0"
+readme="README.md"
+
+[dev-dependencies]
+approx = "0.1.1"

@@ -26,36 +26,50 @@
 //! (useful when used with `time` crate)
 //!
 //! ```no_run
-//! # extern crate spin_sleep;
 //! # use std::time::Duration;
 //! # let spin_sleeper = spin_sleep::SpinSleeper::new(100_000);
 //! spin_sleeper.sleep_s(1.01255);
 //! spin_sleeper.sleep_ns(1_012_550_000);
 //! ```
+#[cfg(test)]
+#[macro_use] extern crate approx;
+
+mod loop_helper;
 
 use std::thread;
 use std::time::{Duration, Instant};
+pub use loop_helper::*;
 
-/// Accuracy container for spin sleeping
-#[derive(Debug, Clone, Copy, PartialEq)]
+/// Marker alias to show the meaning of a `f64` in certain methods.
+pub type Seconds = f64;
+/// Marker alias to show the meaning of a `f64` in certain methods.
+pub type RatePerSecond = f64;
+/// Marker alias to show the meaning of a `u64` in certain methods.
+pub type Nanoseconds = u64;
+/// Marker alias to show the meaning of a `u32` in certain methods.
+pub type SubsecondNanoseconds = u32;
+
+/// Accuracy container for spin sleeping. See [crate docs](index.html).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct SpinSleeper {
     native_accuracy_ns: u32,
 }
 
 impl SpinSleeper {
-    /// Constructs new SpinSleeper with the input native sleep accuracy
+    /// Constructs new SpinSleeper with the input native sleep accuracy.
     /// The lower the `native_accuracy_ns` the more we effectively trust the accuracy of the
-    /// `thread::sleep` function
-    pub fn new(native_accuracy_ns: u32) -> SpinSleeper {
+    /// `thread::sleep` function.
+    pub fn new(native_accuracy_ns: SubsecondNanoseconds) -> SpinSleeper {
         SpinSleeper { native_accuracy_ns }
     }
 
     /// Returns configured native_accuracy_ns
-    pub fn native_accuracy_ns(&self) -> u32 {
+    pub fn native_accuracy_ns(&self) -> SubsecondNanoseconds {
         self.native_accuracy_ns
     }
 
-    /// Puts the current thread to sleep and then/or spins until the specified duration has elapsed.
+    /// Puts the current thread to sleep and then/or spins until the specified duration
+    /// has elapsed.
     pub fn sleep(&self, duration: Duration) {
         let start = Instant::now();
         let accuracy = Duration::new(0, self.native_accuracy_ns);
@@ -67,8 +81,8 @@ impl SpinSleeper {
     }
 
     /// Puts the current thread to sleep and then/or spins until the specified
-    /// second duration has elapsed.
-    pub fn sleep_s(&self, seconds: f64) {
+    /// float second duration has elapsed.
+    pub fn sleep_s(&self, seconds: Seconds) {
         if seconds > 0.0 {
             self.sleep(Duration::new(
                 seconds.floor() as u64,
@@ -79,7 +93,7 @@ impl SpinSleeper {
 
     /// Puts the current thread to sleep and then/or spins until the specified
     /// nanosecond duration has elapsed.
-    pub fn sleep_ns(&self, nanoseconds: u64) {
+    pub fn sleep_ns(&self, nanoseconds: Nanoseconds) {
         let subsec_ns = (nanoseconds % 1_000_000_000) as u32;
         let seconds = nanoseconds / 1_000_000_000;
         self.sleep(Duration::new(seconds, subsec_ns))
@@ -91,69 +105,110 @@ mod spin_sleep_test {
     use super::*;
 
     // The worst case error is unbounded even when spinning, but this accuracy seems reasonable
-    const ACCEPTABLE_DELTA_NS: u32 = 100_000;
+    const ACCEPTABLE_DELTA_NS: SubsecondNanoseconds = 100_000;
+
+    // Since on spin performance is not guaranteed it suffices that the assertions are valid
+    // 'most of the time'. This macro should avoid most 1-off failures.
+    macro_rules! passes_eventually {
+        ($test: stmt) => {{
+            let mut have_let_her_sleep_a_little = false;
+            let mut error = None;
+            for _ in 0..50 {
+                match ::std::panic::catch_unwind(|| {
+                    $test;
+                }) {
+                    Ok(_) => break,
+                    Err(err) => {
+                        // test is failing, maybe due to spin unreliability
+                        error = error.or(Some(err));
+                        if !have_let_her_sleep_a_little {
+                            thread::sleep(Duration::new(0, 1000));
+                            have_let_her_sleep_a_little = true;
+                        }
+                    }
+                }
+            }
+            assert!(error.is_none(), "Test failed 100/100 times: {:?}", error.unwrap());
+        }};
+    }
 
     #[test]
     fn sleep_small() {
-        let ns_duration = 12_345_678;
+        passes_eventually!({
+            let ns_duration = 12_345_678;
 
-        let ps = SpinSleeper::new(20_000_000);
-        ps.sleep(Duration::new(0, 1000)); // warm up
+            let ps = SpinSleeper::new(20_000_000);
+            ps.sleep(Duration::new(0, 1000)); // warm up
 
-        let before = Instant::now();
-        ps.sleep(Duration::new(0, ns_duration));
-        let after = Instant::now();
+            let before = Instant::now();
+            ps.sleep(Duration::new(0, ns_duration));
+            let after = Instant::now();
 
-        println!("Actual: {:?}", after.duration_since(before));
-        assert!(after.duration_since(before) <= Duration::new(0, ns_duration + ACCEPTABLE_DELTA_NS));
-        assert!(after.duration_since(before) >= Duration::new(0, ns_duration - ACCEPTABLE_DELTA_NS));
+            println!("Actual: {:?}", after.duration_since(before));
+            assert!(after.duration_since(before) <=
+                Duration::new(0, ns_duration + ACCEPTABLE_DELTA_NS));
+            assert!(after.duration_since(before) >=
+                Duration::new(0, ns_duration - ACCEPTABLE_DELTA_NS));
+        });
     }
 
     #[test]
     fn sleep_big() {
-        let ns_duration = 212_345_678;
+        passes_eventually!({
+            let ns_duration = 212_345_678;
 
-        let ps = SpinSleeper::new(20_000_000);
-        ps.sleep(Duration::new(0, 1000)); // warm up
+            let ps = SpinSleeper::new(20_000_000);
+            ps.sleep(Duration::new(0, 1000)); // warm up
 
-        let before = Instant::now();
-        ps.sleep(Duration::new(1, ns_duration));
-        let after = Instant::now();
+            let before = Instant::now();
+            ps.sleep(Duration::new(1, ns_duration));
+            let after = Instant::now();
 
-        println!("Actual: {:?}", after.duration_since(before));
-        assert!(after.duration_since(before) <= Duration::new(1, ns_duration + ACCEPTABLE_DELTA_NS));
-        assert!(after.duration_since(before) >= Duration::new(1, ns_duration - ACCEPTABLE_DELTA_NS));
+            println!("Actual: {:?}", after.duration_since(before));
+            assert!(after.duration_since(before) <=
+                Duration::new(1, ns_duration + ACCEPTABLE_DELTA_NS));
+            assert!(after.duration_since(before) >=
+                Duration::new(1, ns_duration - ACCEPTABLE_DELTA_NS));
+        });
     }
 
     #[test]
     fn sleep_s() {
-        let ns_duration = 12_345_678_f64;
+        passes_eventually!({
+            let ns_duration = 12_345_678_f64;
 
-        let ps = SpinSleeper::new(20_000_000);
-        ps.sleep_s(0.000001); // warm up
+            let ps = SpinSleeper::new(20_000_000);
+            ps.sleep_s(0.000001); // warm up
 
-        let before = Instant::now();
-        ps.sleep_s(ns_duration / 1_000_000_000_f64);
-        let after = Instant::now();
+            let before = Instant::now();
+            ps.sleep_s(ns_duration / 1_000_000_000_f64);
+            let after = Instant::now();
 
-        println!("Actual: {:?}", after.duration_since(before));
-        assert!(after.duration_since(before) <= Duration::new(0, ns_duration.round() as u32 + ACCEPTABLE_DELTA_NS));
-        assert!(after.duration_since(before) >= Duration::new(0, ns_duration.round() as u32 - ACCEPTABLE_DELTA_NS));
+            println!("Actual: {:?}", after.duration_since(before));
+            assert!(after.duration_since(before) <=
+                Duration::new(0, ns_duration.round() as u32 + ACCEPTABLE_DELTA_NS));
+            assert!(after.duration_since(before) >=
+                Duration::new(0, ns_duration.round() as u32 - ACCEPTABLE_DELTA_NS));
+        });
     }
 
     #[test]
     fn sleep_ns() {
-        let ns_duration: u32 = 12_345_678;
+        passes_eventually!({
+            let ns_duration: u32 = 12_345_678;
 
-        let ps = SpinSleeper::new(20_000_000);
-        ps.sleep_ns(1000); // warm up
+            let ps = SpinSleeper::new(20_000_000);
+            ps.sleep_ns(1000); // warm up
 
-        let before = Instant::now();
-        ps.sleep_ns(ns_duration as u64);
-        let after = Instant::now();
+            let before = Instant::now();
+            ps.sleep_ns(ns_duration as u64);
+            let after = Instant::now();
 
-        println!("Actual: {:?}", after.duration_since(before));
-        assert!(after.duration_since(before) <= Duration::new(0, ns_duration + ACCEPTABLE_DELTA_NS));
-        assert!(after.duration_since(before) >= Duration::new(0, ns_duration - ACCEPTABLE_DELTA_NS));
+            println!("Actual: {:?}", after.duration_since(before));
+            assert!(after.duration_since(before) <=
+                Duration::new(0, ns_duration + ACCEPTABLE_DELTA_NS));
+            assert!(after.duration_since(before) >=
+                Duration::new(0, ns_duration - ACCEPTABLE_DELTA_NS));
+        });
     }
 }
