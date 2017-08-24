@@ -87,9 +87,7 @@ impl LoopHelperBuilder {
     /// Sets the interval between
     /// [`LoopHelper::report_rate`](/struct.LoopHelper.html#method.report_rate) reports in seconds.
     pub fn report_interval_s(mut self, seconds: Seconds) -> Self {
-        let whole_seconds = seconds.round() as u64;
-        let subsec_nanos = (seconds.fract() * 1_000_000_000_f64).round() as u32;
-        self.report_interval = Some(Duration::new(whole_seconds, subsec_nanos));
+        self.report_interval = Some(Duration::from_f64_secs(seconds));
         self
     }
 
