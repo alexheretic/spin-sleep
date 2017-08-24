@@ -166,7 +166,10 @@ impl LoopHelper {
     /// has elapsed. Uses a [`SpinSleeper`](struct.SpinSleeper.html) to sleep the thread to provide
     /// improved accuracy. If the delta has already elapsed this method returns immediately.
     pub fn loop_sleep(&mut self) {
-        self.sleeper.sleep(self.target_delta - self.last_loop_start.elapsed());
+        let elapsed = self.last_loop_start.elapsed();
+        if elapsed < self.target_delta {
+            self.sleeper.sleep(self.target_delta - elapsed);
+        }
     }
 
     /// Returns the mean rate per second recorded since the last report. Returns `None` if
@@ -234,5 +237,16 @@ mod loop_helper_test {
         let expected_rate = 1.0 / (deltas.iter().fold(0.0, |sum, n| sum + n) / loops as f64);
 
         assert_relative_eq!(reported_rate, expected_rate, epsilon = 1e-9);
+    }
+
+    #[test]
+    fn loop_sleep_already_past_target() {
+        let mut loop_helper = LoopHelper::builder()
+            .report_interval_s(0.0)
+            .build_with_target_rate(f64::INFINITY);
+
+        loop_helper.loop_start();
+
+        loop_helper.loop_sleep(); // should not panic
     }
 }
