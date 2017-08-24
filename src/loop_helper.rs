@@ -56,7 +56,7 @@ impl FromF64Seconds<Duration> for Duration {
 ///     // compute_something(delta);
 ///
 ///     if let Some(fps) = loop_helper.report_rate() {
-///         current_fps = Some(fps);
+///         current_fps = Some(fps.round());
 ///     }
 ///
 ///     // render_fps(current_fps);

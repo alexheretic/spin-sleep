@@ -10,3 +10,7 @@ readme="README.md"
 
 [dev-dependencies]
 approx = "0.1.1"
+
+[features]
+# Controls certain tests that are not deterministic
+nondeterministic_tests = []

@@ -100,14 +100,16 @@ impl SpinSleeper {
     }
 }
 
+// Not run unless specifically enabled with `cargo test --features "nondeterministic_tests"`
+// Travis does not do well with these tests, as they require a certain CPU priority.
+#[cfg(feature = "nondeterministic_tests")]
 #[cfg(test)]
 mod spin_sleep_test {
     use super::*;
 
-    // The worst case error is unbounded even when spinning, but this accuracy then is a warning
-    // baseline applied to the travis & appveyor nodes. This value can be tweak far lower to
-    // demonstratet he accuracy locally.
-    const ACCEPTABLE_DELTA_NS: SubsecondNanoseconds = 200_000;
+    // The worst case error is unbounded even when spinning, but this accuracy is reasonable
+    // for most platforms.
+    const ACCEPTABLE_DELTA_NS: SubsecondNanoseconds = 50_000;
 
     // Since on spin performance is not guaranteed it suffices that the assertions are valid
     // 'most of the time'. This macro should avoid most 1-off failures.
