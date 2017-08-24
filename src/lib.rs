@@ -104,14 +104,15 @@ impl SpinSleeper {
 mod spin_sleep_test {
     use super::*;
 
-    // The worst case error is unbounded even when spinning, but this accuracy seems reasonable
-    const ACCEPTABLE_DELTA_NS: SubsecondNanoseconds = 100_000;
+    // The worst case error is unbounded even when spinning, but this accuracy then is a warning
+    // baseline applied to the travis & appveyor nodes. This value can be tweak far lower to
+    // demonstratet he accuracy locally.
+    const ACCEPTABLE_DELTA_NS: SubsecondNanoseconds = 200_000;
 
     // Since on spin performance is not guaranteed it suffices that the assertions are valid
     // 'most of the time'. This macro should avoid most 1-off failures.
     macro_rules! passes_eventually {
         ($test: stmt) => {{
-            let mut have_let_her_sleep_a_little = false;
             let mut error = None;
             for _ in 0..50 {
                 match ::std::panic::catch_unwind(|| {
@@ -121,14 +122,11 @@ mod spin_sleep_test {
                     Err(err) => {
                         // test is failing, maybe due to spin unreliability
                         error = error.or(Some(err));
-                        if !have_let_her_sleep_a_little {
-                            thread::sleep(Duration::new(0, 1000));
-                            have_let_her_sleep_a_little = true;
-                        }
+                        thread::sleep(Duration::new(0, 1000));
                     }
                 }
             }
-            assert!(error.is_none(), "Test failed 100/100 times: {:?}", error.unwrap());
+            assert!(error.is_none(), "Test failed 50/50 times: {:?}", error.unwrap());
         }};
     }
 
