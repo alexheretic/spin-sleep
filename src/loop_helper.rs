@@ -3,9 +3,9 @@ use std::time::{Instant, Duration};
 use std::f64;
 
 #[cfg(target_os = "windows")]
-pub const DEFAULT_NATIVE_SLEEP_ACCURACY: SubsecondNanoseconds = 15_000_000;
+const DEFAULT_NATIVE_SLEEP_ACCURACY: SubsecondNanoseconds = 15_000_000;
 #[cfg(not(target_os = "windows"))]
-pub const DEFAULT_NATIVE_SLEEP_ACCURACY: SubsecondNanoseconds = 125_000;
+const DEFAULT_NATIVE_SLEEP_ACCURACY: SubsecondNanoseconds = 125_000;
 
 trait ToF64Seconds {
     fn to_f64_secs(&self) -> Seconds;
@@ -100,6 +100,10 @@ impl LoopHelperBuilder {
 
     /// Sets the native sleep accuracy.
     /// See [`SpinSleeper::new`](struct.SpinSleeper.html#method.new) for details.
+    ///
+    /// Defaults to a platform specific opinionated value, that can change from release to release.
+    /// Set this to ensure consistent behaviour across releases. However, consider that this
+    /// value *should* be tuned & tested for a given platform.
     pub fn native_accuracy_ns(mut self, accuracy: SubsecondNanoseconds) -> Self {
         self.sleeper = Some(SpinSleeper::new(accuracy));
         self
