@@ -174,6 +174,18 @@ impl LoopHelper {
         }
     }
 
+    /// Generally called at the end of a loop to sleep until the desired delta (configured with
+    /// [`build_with_target_rate`](struct.LoopHelperBuilder.html#method.build_with_target_rate))
+    /// has elapsed. Does *not* use a  [`SpinSleeper`](struct.SpinSleeper.html), instead directly
+    /// calls `thread::sleep` and will never spin. This is less accurate than
+    /// [`loop_sleep`](struct.LoopHelper.html#method.loop_sleep) but less CPU intensive.
+    pub fn loop_sleep_no_spin(&mut self) {
+        let elapsed = self.last_loop_start.elapsed();
+        if elapsed < self.target_delta {
+            ::std::thread::sleep(self.target_delta - elapsed);
+        }
+    }
+
     /// Returns the mean rate per second recorded since the last report. Returns `None` if
     /// the last report was within the configured `report_interval`.
     pub fn report_rate(&mut self) -> Option<RatePerSecond> {
