@@ -2,9 +2,6 @@ use super::*;
 use std::time::{Instant, Duration};
 use std::f64;
 
-#[cfg(target_os = "windows")]
-const DEFAULT_NATIVE_SLEEP_ACCURACY: SubsecondNanoseconds = 15_000_000;
-#[cfg(not(target_os = "windows"))]
 const DEFAULT_NATIVE_SLEEP_ACCURACY: SubsecondNanoseconds = 125_000;
 
 trait ToF64Seconds {
@@ -123,11 +120,20 @@ impl LoopHelperBuilder {
     pub fn build_with_target_rate(self, target_rate: RatePerSecond) -> LoopHelper {
         let now = Instant::now();
         let interval = self.report_interval.unwrap_or_else(|| Duration::from_secs(1));
+
         LoopHelper {
             target_delta: Duration::from_f64_secs(1.0 / target_rate),
             report_interval: interval,
-            sleeper: self.sleeper.unwrap_or_else(|| SpinSleeper::new(DEFAULT_NATIVE_SLEEP_ACCURACY)),
-
+            sleeper: self.sleeper.unwrap_or_else(|| {
+                 SpinSleeper::new(
+                    if cfg!(windows) {
+                        *MIN_TIME_PERIOD * 1_000_000
+                    }
+                    else {
+                        DEFAULT_NATIVE_SLEEP_ACCURACY
+                    }
+                )
+            }),
             last_report: now - interval,
             last_loop_start: now,
             delta_sum: Duration::from_secs(0),
@@ -182,7 +188,7 @@ impl LoopHelper {
     pub fn loop_sleep_no_spin(&mut self) {
         let elapsed = self.last_loop_start.elapsed();
         if elapsed < self.target_delta {
-            ::std::thread::sleep(self.target_delta - elapsed);
+            thread_sleep(self.target_delta - elapsed);
         }
     }
 
@@ -205,6 +211,34 @@ impl LoopHelper {
 mod loop_helper_test {
     use super::*;
     use std::thread;
+    
+    #[test] #[ignore]
+    fn print_estimated_thread_sleep_accuracy() {
+        let mut best = Duration::from_secs(100);
+        let mut sum = Duration::from_secs(0);
+        let mut worst = Duration::from_secs(0);
+
+        for _ in 0..100 {
+            let before = Instant::now();
+            thread_sleep(Duration::new(0, 1));
+            let elapsed = before.elapsed();
+            sum += elapsed;
+            if elapsed < best {
+                best = elapsed;
+            }
+            if elapsed > worst {
+                worst = elapsed;
+            }
+        }
+
+        println!(
+            "average: {:.6}s, best : {:.6}s, worst: {:.6}s",
+            sum.to_f64_secs() / 100.0, 
+            best.to_f64_secs(),
+            worst.to_f64_secs(),
+        );
+        assert!(false);
+    }
 
     #[test]
     fn duration_f64_conversion() {

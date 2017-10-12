@@ -34,6 +34,11 @@
 #[cfg(test)]
 #[macro_use] extern crate approx;
 
+#[cfg(windows)] extern crate winmm;
+#[cfg(windows)] extern crate winapi;
+#[cfg(windows)] 
+#[macro_use] extern crate lazy_static;
+
 mod loop_helper;
 
 use std::thread;
@@ -55,6 +60,45 @@ pub struct SpinSleeper {
     native_accuracy_ns: u32,
 }
 
+#[cfg(not(windows))]
+#[inline]
+pub(crate) fn thread_sleep(duration: Duration) {
+    thread::sleep(duration)
+}
+
+#[cfg(windows)]
+lazy_static! {
+    static ref MIN_TIME_PERIOD: ::winapi::minwindef::UINT = unsafe {
+        use winapi::mmsystem::*;
+        use winmm::*;
+        use std::mem;
+
+        let tc_size = mem::size_of::<TIMECAPS>() as u32;
+        let mut tc = TIMECAPS {
+            wPeriodMin: 0,
+            wPeriodMax: 0,
+        };
+
+        if timeGetDevCaps(&mut tc as *mut TIMECAPS, tc_size) == TIMERR_NOERROR {
+            tc.wPeriodMin
+        }
+        else {
+            1
+        }
+    };
+}
+
+#[cfg(windows)]
+#[inline]
+pub(crate) fn thread_sleep(duration: Duration) {
+    unsafe {
+        use winmm::{timeBeginPeriod, timeEndPeriod};
+        timeBeginPeriod(*MIN_TIME_PERIOD);
+        thread::sleep(duration);
+        timeEndPeriod(*MIN_TIME_PERIOD);
+    }
+}
+
 impl SpinSleeper {
     /// Constructs new SpinSleeper with the input native sleep accuracy.
     /// The lower the `native_accuracy_ns` the more we effectively trust the accuracy of the
@@ -74,7 +118,7 @@ impl SpinSleeper {
         let start = Instant::now();
         let accuracy = Duration::new(0, self.native_accuracy_ns);
         if duration > accuracy {
-            thread::sleep(duration - accuracy)
+            thread_sleep(duration - accuracy)
         }
         // spin the rest of the duration
         while start.elapsed() < duration {}
