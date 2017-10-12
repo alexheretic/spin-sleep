@@ -125,14 +125,12 @@ impl LoopHelperBuilder {
             target_delta: Duration::from_f64_secs(1.0 / target_rate),
             report_interval: interval,
             sleeper: self.sleeper.unwrap_or_else(|| {
-                 SpinSleeper::new(
-                    if cfg!(windows) {
-                        *MIN_TIME_PERIOD * 1_000_000
-                    }
-                    else {
-                        DEFAULT_NATIVE_SLEEP_ACCURACY
-                    }
-                )
+                #[cfg(windows)]
+                let accuracy = *MIN_TIME_PERIOD * 1_000_000;
+                #[cfg(not(windows))]
+                let accuracy = DEFAULT_NATIVE_SLEEP_ACCURACY;
+
+                SpinSleeper::new(accuracy)
             }),
             last_report: now - interval,
             last_loop_start: now,
@@ -211,7 +209,7 @@ impl LoopHelper {
 mod loop_helper_test {
     use super::*;
     use std::thread;
-    
+
     #[test] #[ignore]
     fn print_estimated_thread_sleep_accuracy() {
         let mut best = Duration::from_secs(100);
@@ -233,7 +231,7 @@ mod loop_helper_test {
 
         println!(
             "average: {:.6}s, best : {:.6}s, worst: {:.6}s",
-            sum.to_f64_secs() / 100.0, 
+            sum.to_f64_secs() / 100.0,
             best.to_f64_secs(),
             worst.to_f64_secs(),
         );
