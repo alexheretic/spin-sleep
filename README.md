@@ -17,6 +17,10 @@ This library adds a middle ground, using a configurable native accuracy setting 
 thread::sleep to wait the bulk of a sleep time, and spin the final section to guarantee
 accuracy.
 
+### Windows Accuracy
+Windows has particularly poor accuracy by default (~15ms), `spin_sleep` will automatically
+select the best accuracy on windows generally achieving ~1ms accuracy *(Since 0.3.3)*.
+
 ### SpinSleeper
 ```rust
 extern crate spin_sleep;
