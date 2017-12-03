@@ -1,10 +1,6 @@
 spin_sleep
-<a href="https://crates.io/crates/spin_sleep">
-  <img src="http://img.shields.io/crates/v/spin_sleep.svg">
-</a>
-<a href="https://docs.rs/spin_sleep">
-  <img src="https://docs.rs/spin_sleep/badge.svg">
-</a>
+[![crates.io](https://img.shields.io/crates/v/spin_sleep.svg)](https://crates.io/crates/spin_sleep)
+[![Documentation](https://docs.rs/spin_sleep/badge.svg)](https://docs.rs/spin_sleep)
 ==========
 
 Accurate sleeping. Only use native sleep as far as it can be trusted, then spin.
