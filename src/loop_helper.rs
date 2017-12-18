@@ -2,6 +2,7 @@ use super::*;
 use std::time::{Instant, Duration};
 use std::f64;
 
+#[cfg(not(windows))]
 const DEFAULT_NATIVE_SLEEP_ACCURACY: SubsecondNanoseconds = 125_000;
 
 trait ToF64Seconds {

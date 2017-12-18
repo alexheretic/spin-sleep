@@ -34,10 +34,11 @@
 #[cfg(test)]
 #[macro_use] extern crate approx;
 
-#[cfg(windows)] extern crate winmm;
-#[cfg(windows)] extern crate winapi;
 #[cfg(windows)] 
-#[macro_use] extern crate lazy_static;
+extern crate winapi;
+#[cfg(windows)] 
+#[macro_use] 
+extern crate lazy_static;
 
 mod loop_helper;
 
@@ -68,9 +69,9 @@ pub(crate) fn thread_sleep(duration: Duration) {
 
 #[cfg(windows)]
 lazy_static! {
-    static ref MIN_TIME_PERIOD: ::winapi::minwindef::UINT = unsafe {
-        use winapi::mmsystem::*;
-        use winmm::*;
+    static ref MIN_TIME_PERIOD: ::winapi::shared::minwindef::UINT = unsafe {
+        use winapi::um::mmsystem::*;
+        use winapi::um::timeapi::timeGetDevCaps;
         use std::mem;
 
         let tc_size = mem::size_of::<TIMECAPS>() as u32;
@@ -92,7 +93,7 @@ lazy_static! {
 #[inline]
 pub(crate) fn thread_sleep(duration: Duration) {
     unsafe {
-        use winmm::{timeBeginPeriod, timeEndPeriod};
+        use winapi::um::timeapi::{timeBeginPeriod, timeEndPeriod};
         timeBeginPeriod(*MIN_TIME_PERIOD);
         thread::sleep(duration);
         timeEndPeriod(*MIN_TIME_PERIOD);
