@@ -1,5 +1,5 @@
 use super::*;
-use std::time::{Instant, Duration};
+use std::time::{Duration, Instant};
 use std::f64;
 
 #[cfg(not(windows))]
@@ -120,7 +120,8 @@ impl LoopHelperBuilder {
     /// [`LoopHelper::loop_sleep`](struct.LoopHelper.html#method.loop_sleep).
     pub fn build_with_target_rate(self, target_rate: RatePerSecond) -> LoopHelper {
         let now = Instant::now();
-        let interval = self.report_interval.unwrap_or_else(|| Duration::from_secs(1));
+        let interval = self.report_interval
+            .unwrap_or_else(|| Duration::from_secs(1));
 
         LoopHelper {
             target_delta: Duration::from_f64_secs(1.0 / target_rate),
@@ -202,7 +203,9 @@ impl LoopHelper {
             self.last_report = now;
             report
         }
-        else { None }
+        else {
+            None
+        }
     }
 }
 
@@ -211,7 +214,8 @@ mod loop_helper_test {
     use super::*;
     use std::thread;
 
-    #[test] #[ignore]
+    #[test]
+    #[ignore]
     fn print_estimated_thread_sleep_accuracy() {
         let mut best = Duration::from_secs(100);
         let mut sum = Duration::from_secs(0);

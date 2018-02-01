@@ -32,13 +32,14 @@
 //! spin_sleeper.sleep_ns(1_012_550_000);
 //! ```
 #[cfg(test)]
-#[macro_use] extern crate approx;
+#[macro_use]
+extern crate approx;
 
-#[cfg(windows)] 
-extern crate winapi;
-#[cfg(windows)] 
-#[macro_use] 
+#[cfg(windows)]
+#[macro_use]
 extern crate lazy_static;
+#[cfg(windows)]
+extern crate winapi;
 
 mod loop_helper;
 
@@ -190,10 +191,12 @@ mod spin_sleep_test {
             let after = Instant::now();
 
             println!("Actual: {:?}", after.duration_since(before));
-            assert!(after.duration_since(before) <=
-                Duration::new(0, ns_duration + ACCEPTABLE_DELTA_NS));
-            assert!(after.duration_since(before) >=
-                Duration::new(0, ns_duration - ACCEPTABLE_DELTA_NS));
+            assert!(
+                after.duration_since(before) <= Duration::new(0, ns_duration + ACCEPTABLE_DELTA_NS)
+            );
+            assert!(
+                after.duration_since(before) >= Duration::new(0, ns_duration - ACCEPTABLE_DELTA_NS)
+            );
         });
     }
 
@@ -210,10 +213,12 @@ mod spin_sleep_test {
             let after = Instant::now();
 
             println!("Actual: {:?}", after.duration_since(before));
-            assert!(after.duration_since(before) <=
-                Duration::new(1, ns_duration + ACCEPTABLE_DELTA_NS));
-            assert!(after.duration_since(before) >=
-                Duration::new(1, ns_duration - ACCEPTABLE_DELTA_NS));
+            assert!(
+                after.duration_since(before) <= Duration::new(1, ns_duration + ACCEPTABLE_DELTA_NS)
+            );
+            assert!(
+                after.duration_since(before) >= Duration::new(1, ns_duration - ACCEPTABLE_DELTA_NS)
+            );
         });
     }
 
@@ -230,10 +235,14 @@ mod spin_sleep_test {
             let after = Instant::now();
 
             println!("Actual: {:?}", after.duration_since(before));
-            assert!(after.duration_since(before) <=
-                Duration::new(0, ns_duration.round() as u32 + ACCEPTABLE_DELTA_NS));
-            assert!(after.duration_since(before) >=
-                Duration::new(0, ns_duration.round() as u32 - ACCEPTABLE_DELTA_NS));
+            assert!(
+                after.duration_since(before)
+                    <= Duration::new(0, ns_duration.round() as u32 + ACCEPTABLE_DELTA_NS)
+            );
+            assert!(
+                after.duration_since(before)
+                    >= Duration::new(0, ns_duration.round() as u32 - ACCEPTABLE_DELTA_NS)
+            );
         });
     }
 
@@ -250,10 +259,12 @@ mod spin_sleep_test {
             let after = Instant::now();
 
             println!("Actual: {:?}", after.duration_since(before));
-            assert!(after.duration_since(before) <=
-                Duration::new(0, ns_duration + ACCEPTABLE_DELTA_NS));
-            assert!(after.duration_since(before) >=
-                Duration::new(0, ns_duration - ACCEPTABLE_DELTA_NS));
+            assert!(
+                after.duration_since(before) <= Duration::new(0, ns_duration + ACCEPTABLE_DELTA_NS)
+            );
+            assert!(
+                after.duration_since(before) >= Duration::new(0, ns_duration - ACCEPTABLE_DELTA_NS)
+            );
         });
     }
 }
