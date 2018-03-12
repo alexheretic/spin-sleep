@@ -34,6 +34,11 @@ spin_sleeper.sleep_s(1.01255);
 spin_sleeper.sleep_ns(1_012_550_000);
 ```
 
+OS-specific default accuracy settings should be good enough for most cases.
+```rust
+let sleeper = SpinSleeper::default();
+```
+
 ### LoopHelper
 For controlling & report rates (e.g. game FPS) this crate provides `LoopHelper`. A `SpinSleeper` is used to maximise
 sleeping accuracy.
@@ -64,4 +69,4 @@ loop {
 
 ### Windows Accuracy
 Windows has particularly poor accuracy by default (~15ms), `spin_sleep` will automatically
-select the best accuracy on windows generally achieving ~1ms accuracy *(Since 0.3.3)*.
+select the best accuracy on windows generally achieving ~1ms native sleep accuracy *(Since 0.3.3)*.

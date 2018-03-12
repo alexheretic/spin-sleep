@@ -2,14 +2,11 @@ use super::*;
 use std::time::{Duration, Instant};
 use std::f64;
 
-#[cfg(not(windows))]
-const DEFAULT_NATIVE_SLEEP_ACCURACY: SubsecondNanoseconds = 125_000;
-
-trait ToF64Seconds {
+pub(crate) trait ToF64Seconds {
     fn to_f64_secs(&self) -> Seconds;
 }
 
-trait FromF64Seconds<T> {
+pub(crate) trait FromF64Seconds<T> {
     fn from_f64_secs(seconds: Seconds) -> T;
 }
 
@@ -23,7 +20,7 @@ impl ToF64Seconds for Duration {
 
 impl FromF64Seconds<Duration> for Duration {
     fn from_f64_secs(seconds: Seconds) -> Duration {
-        let whole_seconds = seconds.round() as u64;
+        let whole_seconds = seconds.floor() as u64;
         let subsec_nanos = (seconds.fract() * 1_000_000_000_f64).round() as u32;
         Duration::new(whole_seconds, subsec_nanos)
     }
@@ -126,14 +123,7 @@ impl LoopHelperBuilder {
         LoopHelper {
             target_delta: Duration::from_f64_secs(1.0 / target_rate),
             report_interval: interval,
-            sleeper: self.sleeper.unwrap_or_else(|| {
-                #[cfg(windows)]
-                let accuracy = *MIN_TIME_PERIOD * 1_000_000;
-                #[cfg(not(windows))]
-                let accuracy = DEFAULT_NATIVE_SLEEP_ACCURACY;
-
-                SpinSleeper::new(accuracy)
-            }),
+            sleeper: self.sleeper.unwrap_or_else(SpinSleeper::default),
             last_report: now - interval,
             last_loop_start: now,
             delta_sum: Duration::from_secs(0),

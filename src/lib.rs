@@ -31,6 +31,13 @@
 //! spin_sleeper.sleep_s(1.01255);
 //! spin_sleeper.sleep_ns(1_012_550_000);
 //! ```
+//!
+//! OS-specific default accuracy settings should be good enough for most cases.
+//! ```
+//! # use spin_sleep::SpinSleeper;
+//! let sleeper = SpinSleeper::default();
+//! # let _ = sleeper;
+//! ```
 #[cfg(test)]
 #[macro_use]
 extern crate approx;
@@ -61,6 +68,9 @@ pub type SubsecondNanoseconds = u32;
 pub struct SpinSleeper {
     native_accuracy_ns: u32,
 }
+
+#[cfg(not(windows))]
+const DEFAULT_NATIVE_SLEEP_ACCURACY: SubsecondNanoseconds = 125_000;
 
 #[cfg(not(windows))]
 #[inline]
@@ -101,6 +111,18 @@ pub(crate) fn thread_sleep(duration: Duration) {
     }
 }
 
+impl Default for SpinSleeper {
+    /// Constructs new SpinSleeper with defaults suiting the current OS
+    fn default() -> Self {
+        #[cfg(windows)]
+        let accuracy = *MIN_TIME_PERIOD * 1_000_000;
+        #[cfg(not(windows))]
+        let accuracy = DEFAULT_NATIVE_SLEEP_ACCURACY;
+
+        SpinSleeper::new(accuracy)
+    }
+}
+
 impl SpinSleeper {
     /// Constructs new SpinSleeper with the input native sleep accuracy.
     /// The lower the `native_accuracy_ns` the more we effectively trust the accuracy of the
@@ -120,20 +142,19 @@ impl SpinSleeper {
         let start = Instant::now();
         let accuracy = Duration::new(0, self.native_accuracy_ns);
         if duration > accuracy {
-            thread_sleep(duration - accuracy)
+            thread_sleep(duration - accuracy);
         }
         // spin the rest of the duration
-        while start.elapsed() < duration {}
+        while start.elapsed() < duration {
+            thread::yield_now();
+        }
     }
 
     /// Puts the current thread to sleep and then/or spins until the specified
     /// float second duration has elapsed.
     pub fn sleep_s(&self, seconds: Seconds) {
         if seconds > 0.0 {
-            self.sleep(Duration::new(
-                seconds.floor() as u64,
-                ((seconds % 1f64) * 1_000_000_000f64).round() as u32,
-            ))
+            self.sleep(Duration::from_f64_secs(seconds));
         }
     }
 
