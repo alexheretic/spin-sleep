@@ -13,7 +13,7 @@ winapi = { version = "0.3", features = ["minwindef", "mmsystem", "timeapi"] }
 lazy_static = "1"
 
 [dev-dependencies]
-approx = "0.1.1"
+approx = "0.2"
 
 [features]
 # Controls certain tests that are not deterministic
