@@ -9,10 +9,20 @@
 //! accuracy.
 //!
 //! # Examples
+//!
+//! Simplist usage with default native accuracy is a drop in replacement for `thread::sleep`.
 //! ```no_run
 //! extern crate spin_sleep;
 //! # use std::time::Duration;
 //!
+//! spin_sleep::sleep(Duration::new(1, 12_550_000));
+//! ```
+//!
+//! More advanced usage, including setting a custom native accuracy, can be acheived by
+//! constructing a `SpinSleeper`.
+//! ```no_run
+//! # extern crate spin_sleep;
+//! # use std::time::Duration;
 //! // Create a new sleeper that trusts native thread::sleep with 100μs accuracy
 //! let spin_sleeper = spin_sleep::SpinSleeper::new(100_000);
 //!
@@ -38,6 +48,10 @@
 //! let sleeper = SpinSleeper::default();
 //! # let _ = sleeper;
 //! ```
+#![allow(unknown_lints)]
+#![warn(clippy, clone_on_ref_ptr)]
+#![allow(cast_lossless)]
+
 #[cfg(test)]
 #[macro_use]
 extern crate approx;
@@ -50,9 +64,9 @@ extern crate winapi;
 
 mod loop_helper;
 
+pub use loop_helper::*;
 use std::thread;
 use std::time::{Duration, Instant};
-pub use loop_helper::*;
 
 /// Marker alias to show the meaning of a `f64` in certain methods.
 pub type Seconds = f64;
@@ -81,9 +95,9 @@ pub(crate) fn thread_sleep(duration: Duration) {
 #[cfg(windows)]
 lazy_static! {
     static ref MIN_TIME_PERIOD: ::winapi::shared::minwindef::UINT = unsafe {
+        use std::mem;
         use winapi::um::mmsystem::*;
         use winapi::um::timeapi::timeGetDevCaps;
-        use std::mem;
 
         let tc_size = mem::size_of::<TIMECAPS>() as u32;
         let mut tc = TIMECAPS {
@@ -132,13 +146,13 @@ impl SpinSleeper {
     }
 
     /// Returns configured native_accuracy_ns
-    pub fn native_accuracy_ns(&self) -> SubsecondNanoseconds {
+    pub fn native_accuracy_ns(self) -> SubsecondNanoseconds {
         self.native_accuracy_ns
     }
 
-    /// Puts the current thread to sleep and then/or spins until the specified duration
-    /// has elapsed.
-    pub fn sleep(&self, duration: Duration) {
+    /// Puts the current thread to sleep, if duration is long enough, then spins until the
+    /// specified duration has elapsed.
+    pub fn sleep(self, duration: Duration) {
         let start = Instant::now();
         let accuracy = Duration::new(0, self.native_accuracy_ns);
         if duration > accuracy {
@@ -150,21 +164,32 @@ impl SpinSleeper {
         }
     }
 
-    /// Puts the current thread to sleep and then/or spins until the specified
-    /// float second duration has elapsed.
-    pub fn sleep_s(&self, seconds: Seconds) {
+    /// Puts the current thread to sleep, if duration is long enough, then spins until the
+    /// specified second duration has elapsed.
+    pub fn sleep_s(self, seconds: Seconds) {
         if seconds > 0.0 {
             self.sleep(Duration::from_f64_secs(seconds));
         }
     }
 
-    /// Puts the current thread to sleep and then/or spins until the specified
-    /// nanosecond duration has elapsed.
-    pub fn sleep_ns(&self, nanoseconds: Nanoseconds) {
+    /// Puts the current thread to sleep, if duration is long enough, then spins until the
+    /// specified nanosecond duration has elapsed.
+    pub fn sleep_ns(self, nanoseconds: Nanoseconds) {
         let subsec_ns = (nanoseconds % 1_000_000_000) as u32;
         let seconds = nanoseconds / 1_000_000_000;
         self.sleep(Duration::new(seconds, subsec_ns))
     }
+}
+
+/// Puts the current thread to sleep, if duration is long enough, then spins until the
+/// specified nanosecond duration has elapsed.
+///
+/// Uses default native accuracy.
+///
+/// Convenience function for `SpinSleeper::default().sleep(duration)`. Can directly take the
+/// place of `thread::sleep`.
+pub fn sleep(duration: Duration) {
+    SpinSleeper::default().sleep(duration);
 }
 
 // Not run unless specifically enabled with `cargo test --features "nondeterministic_tests"`
@@ -181,7 +206,7 @@ mod spin_sleep_test {
     // Since on spin performance is not guaranteed it suffices that the assertions are valid
     // 'most of the time'. This macro should avoid most 1-off failures.
     macro_rules! passes_eventually {
-        ($test: stmt) => {{
+        ($test:stmt) => {{
             let mut error = None;
             for _ in 0..50 {
                 match ::std::panic::catch_unwind(|| {
@@ -195,7 +220,11 @@ mod spin_sleep_test {
                     }
                 }
             }
-            assert!(error.is_none(), "Test failed 50/50 times: {:?}", error.unwrap());
+            assert!(
+                error.is_none(),
+                "Test failed 50/50 times: {:?}",
+                error.unwrap()
+            );
         }};
     }
 
