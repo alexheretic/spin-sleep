@@ -14,9 +14,16 @@ thread::sleep to wait the bulk of a sleep time, and spin the final section to gu
 accuracy.
 
 ### SpinSleeper
+Simplist usage with default native accuracy is a drop in replacement for `thread::sleep`.
 ```rust
 extern crate spin_sleep;
 
+spin_sleep::sleep(Duration::new(1, 12_550_000));
+```
+
+More advanced usage, including setting a custom native accuracy, can be achieved by
+constructing a `SpinSleeper`.
+```rust
 // Create a new sleeper that trusts native thread::sleep with 100μs accuracy
 let spin_sleeper = spin_sleep::SpinSleeper::new(100_000);
 

@@ -18,7 +18,7 @@
 //! spin_sleep::sleep(Duration::new(1, 12_550_000));
 //! ```
 //!
-//! More advanced usage, including setting a custom native accuracy, can be acheived by
+//! More advanced usage, including setting a custom native accuracy, can be achieved by
 //! constructing a `SpinSleeper`.
 //! ```no_run
 //! # extern crate spin_sleep;
