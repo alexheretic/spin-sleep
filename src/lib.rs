@@ -127,6 +127,7 @@ pub(crate) fn thread_sleep(duration: Duration) {
 
 impl Default for SpinSleeper {
     /// Constructs new SpinSleeper with defaults suiting the current OS
+    #[inline]
     fn default() -> Self {
         #[cfg(windows)]
         let accuracy = *MIN_TIME_PERIOD * 1_000_000;
@@ -141,6 +142,7 @@ impl SpinSleeper {
     /// Constructs new SpinSleeper with the input native sleep accuracy.
     /// The lower the `native_accuracy_ns` the more we effectively trust the accuracy of the
     /// `thread::sleep` function.
+    #[inline]
     pub fn new(native_accuracy_ns: SubsecondNanoseconds) -> SpinSleeper {
         SpinSleeper { native_accuracy_ns }
     }
