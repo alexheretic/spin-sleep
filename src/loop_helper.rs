@@ -115,13 +115,13 @@ impl LoopHelperBuilder {
     /// Builds a [`LoopHelper`](struct.LoopHelper.html) targeting an input `target_rate`.
     /// Note: The `target_rate` only affects
     /// [`LoopHelper::loop_sleep`](struct.LoopHelper.html#method.loop_sleep).
-    pub fn build_with_target_rate(self, target_rate: RatePerSecond) -> LoopHelper {
+    pub fn build_with_target_rate<R: Into<RatePerSecond>>(self, target_rate: R) -> LoopHelper {
         let now = Instant::now();
         let interval = self.report_interval
             .unwrap_or_else(|| Duration::from_secs(1));
 
         LoopHelper {
-            target_delta: Duration::from_f64_secs(1.0 / target_rate),
+            target_delta: Duration::from_f64_secs(1.0 / target_rate.into()),
             report_interval: interval,
             sleeper: self.sleeper.unwrap_or_else(SpinSleeper::default),
             last_report: now - interval,
@@ -197,6 +197,16 @@ impl LoopHelper {
             None
         }
     }
+
+    /// Changes the target loop rate
+    pub fn set_target_rate<R: Into<RatePerSecond>>(&mut self, target_rate: R) {
+        self.target_delta = Duration::from_f64_secs(1.0 / target_rate.into());
+    }
+
+    /// Returns the current target loop rate
+    pub fn target_rate(&self) -> RatePerSecond {
+        1.0 / self.target_delta.to_f64_secs()
+    }
 }
 
 #[cfg(test)]
@@ -237,9 +247,9 @@ mod loop_helper_test {
     fn duration_f64_conversion() {
         let duration = Duration::new(123, 234_345_456);
 
-        assert_relative_eq!(duration.to_f64_secs(), 123.234345456);
+        assert_relative_eq!(duration.to_f64_secs(), 123.234_345_456);
         // Note: f64 -> duration is not expected to be perfect in all cases
-        assert_eq!(Duration::from_f64_secs(123.234345456), duration);
+        assert_eq!(Duration::from_f64_secs(123.234_345_456), duration);
     }
 
     #[test]
@@ -289,5 +299,15 @@ mod loop_helper_test {
         loop_helper.loop_start();
 
         loop_helper.loop_sleep(); // should not panic
+    }
+
+    #[test]
+    fn get_set_target_rate() {
+        let mut loop_helper = LoopHelper::builder()
+            .build_with_target_rate(100.0);
+        assert_relative_eq!(loop_helper.target_rate(), 100.0, epsilon = 1e-4);
+
+        loop_helper.set_target_rate(150.0);
+        assert_relative_eq!(loop_helper.target_rate(), 150.0, epsilon = 1e-4);
     }
 }
