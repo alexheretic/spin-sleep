@@ -215,35 +215,6 @@ mod loop_helper_test {
     use std::thread;
 
     #[test]
-    #[ignore]
-    fn print_estimated_thread_sleep_accuracy() {
-        let mut best = Duration::from_secs(100);
-        let mut sum = Duration::from_secs(0);
-        let mut worst = Duration::from_secs(0);
-
-        for _ in 0..100 {
-            let before = Instant::now();
-            thread_sleep(Duration::new(0, 1));
-            let elapsed = before.elapsed();
-            sum += elapsed;
-            if elapsed < best {
-                best = elapsed;
-            }
-            if elapsed > worst {
-                worst = elapsed;
-            }
-        }
-
-        println!(
-            "average: {:.6}s, best : {:.6}s, worst: {:.6}s",
-            sum.to_f64_secs() / 100.0,
-            best.to_f64_secs(),
-            worst.to_f64_secs(),
-        );
-        assert!(false);
-    }
-
-    #[test]
     fn duration_f64_conversion() {
         let duration = Duration::new(123, 234_345_456);
 
