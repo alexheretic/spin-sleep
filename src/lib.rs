@@ -153,6 +153,9 @@ impl SpinSleeper {
 
     /// Puts the current thread to sleep, if duration is long enough, then spins until the
     /// specified duration has elapsed.
+    ///
+    /// **Windows**: Automatically selects the best native sleep accuracy generally achieving ~1ms
+    /// native sleep accuracy, instead of default ~16ms.
     pub fn sleep(self, duration: Duration) {
         let start = Instant::now();
         let accuracy = Duration::new(0, self.native_accuracy_ns);
@@ -167,6 +170,9 @@ impl SpinSleeper {
 
     /// Puts the current thread to sleep, if duration is long enough, then spins until the
     /// specified second duration has elapsed.
+    ///
+    /// **Windows**: Automatically selects the best native sleep accuracy generally achieving ~1ms
+    /// native sleep accuracy, instead of default ~16ms.
     pub fn sleep_s(self, seconds: Seconds) {
         if seconds > 0.0 {
             self.sleep(Duration::from_f64_secs(seconds));
@@ -175,6 +181,9 @@ impl SpinSleeper {
 
     /// Puts the current thread to sleep, if duration is long enough, then spins until the
     /// specified nanosecond duration has elapsed.
+    ///
+    /// **Windows**: Automatically selects the best native sleep accuracy generally achieving ~1ms
+    /// native sleep accuracy, instead of default ~16ms.
     pub fn sleep_ns(self, nanoseconds: Nanoseconds) {
         let subsec_ns = (nanoseconds % 1_000_000_000) as u32;
         let seconds = nanoseconds / 1_000_000_000;
@@ -189,6 +198,9 @@ impl SpinSleeper {
 ///
 /// Convenience function for `SpinSleeper::default().sleep(duration)`. Can directly take the
 /// place of `thread::sleep`.
+///
+/// **Windows**: Automatically selects the best native sleep accuracy generally achieving ~1ms
+/// native sleep accuracy, instead of default ~16ms.
 pub fn sleep(duration: Duration) {
     SpinSleeper::default().sleep(duration);
 }
