@@ -107,8 +107,7 @@ lazy_static! {
 
         if timeGetDevCaps(&mut tc as *mut TIMECAPS, tc_size) == TIMERR_NOERROR {
             tc.wPeriodMin
-        }
-        else {
+        } else {
             1
         }
     };

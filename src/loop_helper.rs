@@ -1,6 +1,6 @@
 use super::*;
-use std::time::{Duration, Instant};
 use std::f64;
+use std::time::{Duration, Instant};
 
 pub(crate) trait ToF64Seconds {
     fn to_f64_secs(&self) -> Seconds;
@@ -117,7 +117,8 @@ impl LoopHelperBuilder {
     /// [`LoopHelper::loop_sleep`](struct.LoopHelper.html#method.loop_sleep).
     pub fn build_with_target_rate<R: Into<RatePerSecond>>(self, target_rate: R) -> LoopHelper {
         let now = Instant::now();
-        let interval = self.report_interval
+        let interval = self
+            .report_interval
             .unwrap_or_else(|| Duration::from_secs(1));
 
         LoopHelper {
@@ -192,8 +193,7 @@ impl LoopHelper {
             self.delta_count = 0;
             self.last_report = now;
             report
-        }
-        else {
+        } else {
             None
         }
     }
@@ -303,8 +303,7 @@ mod loop_helper_test {
 
     #[test]
     fn get_set_target_rate() {
-        let mut loop_helper = LoopHelper::builder()
-            .build_with_target_rate(100.0);
+        let mut loop_helper = LoopHelper::builder().build_with_target_rate(100.0);
         assert_relative_eq!(loop_helper.target_rate(), 100.0, epsilon = 1e-4);
 
         loop_helper.set_target_rate(150.0);
