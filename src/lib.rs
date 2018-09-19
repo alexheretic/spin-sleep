@@ -48,19 +48,15 @@
 //! let sleeper = SpinSleeper::default();
 //! # let _ = sleeper;
 //! ```
-#![allow(unknown_lints)]
-#![warn(clippy, clone_on_ref_ptr)]
-#![allow(cast_lossless)]
-
-#[cfg(test)]
-#[macro_use]
-extern crate approx;
-
 #[cfg(windows)]
 #[macro_use]
 extern crate lazy_static;
 #[cfg(windows)]
 extern crate winapi;
+
+#[cfg(test)]
+#[macro_use]
+extern crate approx;
 
 mod loop_helper;
 

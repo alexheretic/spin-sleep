@@ -13,7 +13,7 @@ pub(crate) trait FromF64Seconds<T> {
 impl ToF64Seconds for Duration {
     fn to_f64_secs(&self) -> Seconds {
         let whole_seconds = self.as_secs() as f64;
-        let subsec_nanos = self.subsec_nanos() as f64 / 1_000_000_000_f64;
+        let subsec_nanos = f64::from(self.subsec_nanos()) / 1_000_000_000_f64;
         whole_seconds + subsec_nanos
     }
 }
@@ -188,7 +188,7 @@ impl LoopHelper {
     pub fn report_rate(&mut self) -> Option<RatePerSecond> {
         let now = Instant::now();
         if now.duration_since(self.last_report) > self.report_interval && self.delta_count > 0 {
-            let report = Some(1.0 / (self.delta_sum.to_f64_secs() / self.delta_count as f64));
+            let report = Some(f64::from(self.delta_count) / self.delta_sum.to_f64_secs());
             self.delta_sum = Duration::from_secs(0);
             self.delta_count = 0;
             self.last_report = now;
@@ -237,7 +237,7 @@ mod loop_helper_test {
         }
 
         let reported_rate = loop_helper.report_rate().expect("missing report");
-        let expected_rate = 1.0 / (deltas.iter().sum::<Duration>().to_f64_secs() / loops as f64);
+        let expected_rate = f64::from(loops) / deltas.iter().sum::<Duration>().to_f64_secs();
 
         assert_relative_eq!(reported_rate, expected_rate);
     }
@@ -256,7 +256,7 @@ mod loop_helper_test {
         }
 
         let reported_rate = loop_helper.report_rate().expect("missing report");
-        let expected_rate = 1.0 / (deltas.iter().fold(0.0, |sum, n| sum + n) / loops as f64);
+        let expected_rate = f64::from(loops) / deltas.iter().sum::<f64>();
 
         assert_relative_eq!(reported_rate, expected_rate, epsilon = 1e-9);
     }
