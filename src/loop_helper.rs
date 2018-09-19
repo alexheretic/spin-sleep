@@ -125,7 +125,7 @@ impl LoopHelperBuilder {
             target_delta: Duration::from_f64_secs(1.0 / target_rate.into()),
             report_interval: interval,
             sleeper: self.sleeper.unwrap_or_else(SpinSleeper::default),
-            last_report: now - interval,
+            last_report: now,
             last_loop_start: now,
             delta_sum: Duration::from_secs(0),
             delta_count: 0,
