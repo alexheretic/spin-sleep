@@ -214,6 +214,7 @@ impl LoopHelper {
 #[cfg(test)]
 mod loop_helper_test {
     use super::*;
+    use approx::*;
     use std::thread;
 
     #[test]

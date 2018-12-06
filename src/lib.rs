@@ -48,16 +48,6 @@
 //! let sleeper = SpinSleeper::default();
 //! # let _ = sleeper;
 //! ```
-#[cfg(windows)]
-#[macro_use]
-extern crate lazy_static;
-#[cfg(windows)]
-extern crate winapi;
-
-#[cfg(test)]
-#[macro_use]
-extern crate approx;
-
 mod loop_helper;
 
 pub use crate::loop_helper::*;
@@ -91,7 +81,7 @@ pub(crate) fn thread_sleep(duration: Duration) {
 }
 
 #[cfg(windows)]
-lazy_static! {
+lazy_static::lazy_static! {
     static ref MIN_TIME_PERIOD: ::winapi::shared::minwindef::UINT = unsafe {
         use std::mem;
         use winapi::um::{mmsystem::*, timeapi::timeGetDevCaps};
