@@ -1,6 +1,8 @@
 use super::*;
-use std::f64;
-use std::time::{Duration, Instant};
+use std::{
+    f64,
+    time::{Duration, Instant},
+};
 
 pub(crate) trait ToF64Seconds {
     fn to_f64_secs(&self) -> Seconds;

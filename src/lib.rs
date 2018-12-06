@@ -60,9 +60,11 @@ extern crate approx;
 
 mod loop_helper;
 
-pub use loop_helper::*;
-use std::thread;
-use std::time::{Duration, Instant};
+pub use crate::loop_helper::*;
+use std::{
+    thread,
+    time::{Duration, Instant},
+};
 
 /// Marker alias to show the meaning of a `f64` in certain methods.
 pub type Seconds = f64;
@@ -92,8 +94,7 @@ pub(crate) fn thread_sleep(duration: Duration) {
 lazy_static! {
     static ref MIN_TIME_PERIOD: ::winapi::shared::minwindef::UINT = unsafe {
         use std::mem;
-        use winapi::um::mmsystem::*;
-        use winapi::um::timeapi::timeGetDevCaps;
+        use winapi::um::{mmsystem::*, timeapi::timeGetDevCaps};
 
         let tc_size = mem::size_of::<TIMECAPS>() as u32;
         let mut tc = TIMECAPS {
