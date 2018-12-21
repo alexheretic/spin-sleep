@@ -77,3 +77,6 @@ loop {
 ### Windows Accuracy
 Windows has particularly poor accuracy by default (~15ms), `spin_sleep` will automatically
 select the best accuracy on windows generally achieving ~1ms native sleep accuracy *(Since 0.3.3)*.
+
+## Minimum supported rust compiler
+This crate is maintained with [latest stable rust](https://gist.github.com/alexheretic/d1e98d8433b602e57f5d0a9637927e0c).
