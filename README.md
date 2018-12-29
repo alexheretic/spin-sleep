@@ -16,8 +16,6 @@ accuracy.
 ### SpinSleeper
 Simplist usage with default native accuracy is a drop in replacement for `thread::sleep`.
 ```rust
-extern crate spin_sleep;
-
 spin_sleep::sleep(Duration::new(1, 12_550_000));
 ```
 
