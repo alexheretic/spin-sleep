@@ -78,8 +78,8 @@ pub(crate) fn thread_sleep(duration: Duration) {
 }
 
 #[cfg(windows)]
-lazy_static::lazy_static! {
-    static ref MIN_TIME_PERIOD: ::winapi::shared::minwindef::UINT = unsafe {
+static MIN_TIME_PERIOD: once_cell::sync::Lazy<winapi::shared::minwindef::UINT> =
+    once_cell::sync::Lazy::new(|| unsafe {
         use std::mem;
         use winapi::um::{mmsystem::*, timeapi::timeGetDevCaps};
 
@@ -94,8 +94,7 @@ lazy_static::lazy_static! {
         } else {
             1
         }
-    };
-}
+    });
 
 #[cfg(windows)]
 #[inline]
