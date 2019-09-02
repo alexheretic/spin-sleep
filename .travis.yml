@@ -1,19 +1,13 @@
-sudo: false
 language: rust
-cache:
-  cargo: true
-rust:
-- stable
-- nightly
-env:
-- RUST_BACKTRACE=full
+rust: stable
+env: RUST_BACKTRACE=full
 matrix:
-  allow_failures:
-  - rust: nightly
-  - os: osx
-  fast_finish: true
+  include:
+  # test nightly channel
+  - os: linux
+    rust: nightly
 os:
 - linux
 - osx
-script:
-- cargo test
+- windows
+script: cargo test
