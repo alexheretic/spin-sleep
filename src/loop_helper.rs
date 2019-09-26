@@ -4,30 +4,6 @@ use std::{
     time::{Duration, Instant},
 };
 
-pub(crate) trait ToF64Seconds {
-    fn to_f64_secs(&self) -> Seconds;
-}
-
-pub(crate) trait FromF64Seconds<T> {
-    fn from_f64_secs(seconds: Seconds) -> T;
-}
-
-impl ToF64Seconds for Duration {
-    fn to_f64_secs(&self) -> Seconds {
-        let whole_seconds = self.as_secs() as f64;
-        let subsec_nanos = f64::from(self.subsec_nanos()) / 1_000_000_000_f64;
-        whole_seconds + subsec_nanos
-    }
-}
-
-impl FromF64Seconds<Duration> for Duration {
-    fn from_f64_secs(seconds: Seconds) -> Duration {
-        let whole_seconds = seconds.floor() as u64;
-        let subsec_nanos = (seconds.fract() * 1_000_000_000_f64).round() as u32;
-        Duration::new(whole_seconds, subsec_nanos)
-    }
-}
-
 /// Tool for loop rate reporting and control.
 ///
 /// Can report mean rate per second of a loop over a configured
@@ -84,7 +60,7 @@ impl LoopHelperBuilder {
     /// Sets the interval between
     /// [`LoopHelper::report_rate`](/struct.LoopHelper.html#method.report_rate) reports in seconds.
     pub fn report_interval_s(mut self, seconds: Seconds) -> Self {
-        self.report_interval = Some(Duration::from_f64_secs(seconds));
+        self.report_interval = Some(Duration::from_secs_f64(seconds));
         self
     }
 
@@ -124,7 +100,7 @@ impl LoopHelperBuilder {
             .unwrap_or_else(|| Duration::from_secs(1));
 
         LoopHelper {
-            target_delta: Duration::from_f64_secs(1.0 / target_rate.into()),
+            target_delta: Duration::from_secs_f64(1.0 / target_rate.into()),
             report_interval: interval,
             sleeper: self.sleeper.unwrap_or_else(SpinSleeper::default),
             last_report: now,
@@ -159,7 +135,7 @@ impl LoopHelper {
     /// Notifies the helper that a new loop has begun.
     /// Returns the delta, the seconds since the last call to `loop_start` or `loop_start_s`.
     pub fn loop_start_s(&mut self) -> Seconds {
-        self.loop_start().to_f64_secs()
+        self.loop_start().as_secs_f64()
     }
 
     /// Generally called at the end of a loop to sleep until the desired delta (configured with
@@ -190,7 +166,7 @@ impl LoopHelper {
     pub fn report_rate(&mut self) -> Option<RatePerSecond> {
         let now = Instant::now();
         if now.duration_since(self.last_report) > self.report_interval && self.delta_count > 0 {
-            let report = Some(f64::from(self.delta_count) / self.delta_sum.to_f64_secs());
+            let report = Some(f64::from(self.delta_count) / self.delta_sum.as_secs_f64());
             self.delta_sum = Duration::from_secs(0);
             self.delta_count = 0;
             self.last_report = now;
@@ -202,12 +178,12 @@ impl LoopHelper {
 
     /// Changes the target loop rate
     pub fn set_target_rate<R: Into<RatePerSecond>>(&mut self, target_rate: R) {
-        self.target_delta = Duration::from_f64_secs(1.0 / target_rate.into());
+        self.target_delta = Duration::from_secs_f64(1.0 / target_rate.into());
     }
 
     /// Returns the current target loop rate
     pub fn target_rate(&self) -> RatePerSecond {
-        1.0 / self.target_delta.to_f64_secs()
+        1.0 / self.target_delta.as_secs_f64()
     }
 }
 
@@ -216,15 +192,6 @@ mod loop_helper_test {
     use super::*;
     use approx::*;
     use std::thread;
-
-    #[test]
-    fn duration_f64_conversion() {
-        let duration = Duration::new(123, 234_345_456);
-
-        assert_relative_eq!(duration.to_f64_secs(), 123.234_345_456);
-        // Note: f64 -> duration is not expected to be perfect in all cases
-        assert_eq!(Duration::from_f64_secs(123.234_345_456), duration);
-    }
 
     #[test]
     fn rate_reporting_using_duration() {
@@ -240,7 +207,7 @@ mod loop_helper_test {
         }
 
         let reported_rate = loop_helper.report_rate().expect("missing report");
-        let expected_rate = f64::from(loops) / deltas.iter().sum::<Duration>().to_f64_secs();
+        let expected_rate = f64::from(loops) / deltas.iter().sum::<Duration>().as_secs_f64();
 
         assert_relative_eq!(reported_rate, expected_rate);
     }

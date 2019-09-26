@@ -158,7 +158,7 @@ impl SpinSleeper {
     /// native sleep accuracy, instead of default ~16ms.
     pub fn sleep_s(self, seconds: Seconds) {
         if seconds > 0.0 {
-            self.sleep(Duration::from_f64_secs(seconds));
+            self.sleep(Duration::from_secs_f64(seconds));
         }
     }
 
@@ -337,9 +337,9 @@ fn print_estimated_thread_sleep_accuracy() {
 
     println!(
         "average: {:.6}s, best : {:.6}s, worst: {:.6}s",
-        sum.to_f64_secs() / 100.0,
-        best.to_f64_secs(),
-        worst.to_f64_secs(),
+        sum.as_secs_f64() / 100.0,
+        best.as_secs_f64(),
+        worst.as_secs_f64(),
     );
     println!(
         "average: {:.6}ns, best : {:.6}ns, worst: {:.6}ns",
@@ -347,5 +347,6 @@ fn print_estimated_thread_sleep_accuracy() {
         best.subsec_nanos(),
         worst.subsec_nanos(),
     );
-    assert!(false);
+
+    panic!("Manual use only");
 }
