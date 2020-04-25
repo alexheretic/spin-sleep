@@ -336,17 +336,11 @@ fn print_estimated_thread_sleep_accuracy() {
     }
 
     println!(
-        "average: {:.6}s, best : {:.6}s, worst: {:.6}s",
-        sum.as_secs_f64() / 100.0,
-        best.as_secs_f64(),
-        worst.as_secs_f64(),
-    );
-    println!(
-        "average: {:.6}ns, best : {:.6}ns, worst: {:.6}ns",
-        sum.subsec_nanos() / 100,
-        best.subsec_nanos(),
-        worst.subsec_nanos(),
+        "average: {:?}, best : {:?}, worst: {:?}",
+        Duration::from_nanos((sum.subsec_nanos() / 100).into()),
+        best,
+        worst,
     );
 
-    panic!("Manual use only");
+    panic!("Manual use only, ignore when done");
 }
