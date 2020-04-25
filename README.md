@@ -14,7 +14,7 @@ thread::sleep to wait the bulk of a sleep time, and spin the final section to gu
 accuracy.
 
 ### SpinSleeper
-Simplist usage with default native accuracy is a drop in replacement for `thread::sleep`.
+Simplest usage with default native accuracy is a drop in replacement for `thread::sleep`.
 ```rust
 spin_sleep::sleep(Duration::new(1, 12_550_000));
 ```
