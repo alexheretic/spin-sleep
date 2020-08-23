@@ -53,6 +53,21 @@ use std::{
     time::{Duration, Instant},
 };
 
+/*
+I would highly suggest *not* using floats to represent time.  This is just a mess
+of issues due to variations on float accuracy and performance issues to be avoided.
+I would also suggest changing Nanoseconds to be:
+#[repr(transparent)]
+struct Nanoseconds {
+    duration: u64
+}
+This enforces type safety, allows impl From's for conversions and of course makes
+it compatible with C ABI's if you ever attempt to wrap this up and expose it to C.
+
+Also of note, I might suggest just using Microseconds as the exposed granularity
+since you are unlikely to ever get better than +-1 ms accuracy anyway.
+ */
+
 /// Marker alias to show the meaning of a `f64` in certain methods.
 pub type Seconds = f64;
 /// Marker alias to show the meaning of a `f64` in certain methods.
@@ -101,9 +116,58 @@ static MIN_TIME_PERIOD: once_cell::sync::Lazy<winapi::shared::minwindef::UINT> =
 pub(crate) fn thread_sleep(duration: Duration) {
     unsafe {
         use winapi::um::timeapi::{timeBeginPeriod, timeEndPeriod};
+
+        /*
+        This is a *BIG* no no..  The problem here is that timeBeginPeriod has
+        global impact on the entire OS.  The overhead of changing this value
+        regularly is ... not good, since all processes (not just threads) in the
+        system will now have different accuracy for sleeps, system interrupt
+        rates are increased, etc etc.  Not to mention that the cost of the pair
+        of calls is exceptionally high.  From the docs:
+
+        "Use caution when calling timeBeginPeriod, as frequent calls can
+        significantly affect the system clock, system power usage, and the scheduler."
+
+        To keep using this, only do it once a frame at most and even that is
+        not really a great idea since it can trigger a number of bugs in the
+        overall system where timers change accuracy unexpectedly in completely
+        unrelated processes.
+         */
         timeBeginPeriod(*MIN_TIME_PERIOD);
         thread::sleep(duration);
         timeEndPeriod(*MIN_TIME_PERIOD);
+
+        /*
+        The option to replace this is a spin wait using _mm_pause.  This is a
+        low level instruction you can find in:
+        https://doc.rust-lang.org/1.29.1/core/arch/x86_64/fn._mm_pause.html
+
+        There are two problems with this item though, one building on the other.
+        Intel, in their infinite wisdom, decided to change the behavior of the
+        silicon on Skylake and broke a lot of things thanks to the change.
+        Everything prior to Skylake used a delay of between 6 and 14 CPI,
+        Skylake cranked the hell out of it and it now delays the CPU by 140 CPI.
+
+        The second problem follows from the change: for tight multicore work that
+        targets multiple CPU's now have to detect if the CPU is Skylake to
+        adjust spin wait repetitions or risk massive wait time behavior changes.
+
+        Anyway, you would end up with something like:
+        loop {
+            let count = 32; // Pre-Skylake
+            for i in 0..count {
+                std::arch::x86_64::_mm_pause;
+            }
+
+            // Test current time.
+            // As a note, calling time functions is also slow, so
+            // generally you want a linear backoff where the count
+            // above is about 1/2 the "guessed" at length of the
+            // desired sleep period the first time through, then
+            // use half of that again for the next loop etc till
+            // you get "close enough".
+        }
+         */
     }
 }
 
@@ -140,6 +204,21 @@ impl SpinSleeper {
     /// **Windows**: Automatically selects the best native sleep accuracy generally achieving ~1ms
     /// native sleep accuracy, instead of default ~16ms.
     pub fn sleep(self, duration: Duration) {
+        /* likely bug here, at least for windozer.
+        The accuracy is not measured from point of call, it is a granularity measure.  In other
+        words, when you call sleep the accuracy is not "from the time you make that call" it is
+        rather until the next "tick" of the system clock.  So, if you call sleep(16'ms') and it is
+        half way between system ticks you will end up not waking up for 8 ms till next tick, which
+        is too early so it keeps sleeping till the next increment of 16 ms, meaning 24ms of actual
+        sleep time.
+
+        All said and done, you should use OS Sleep as much as possible even with all the problems.
+        Basically you take the desired sleep duration and chop it up by accuracy granularity, so
+        if the desired sleep is 30ms and accuracy is ~16ms, go ahead and sleep(16) then recheck the
+        timer, if >30ms, return obviously, if less "then" start using the spin loops to get closer
+        to the desired time.
+        */
+
         let start = Instant::now();
         let accuracy = Duration::new(0, self.native_accuracy_ns);
         if duration > accuracy {
