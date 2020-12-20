@@ -43,7 +43,8 @@ pub struct LoopHelper {
     report_interval: Duration,
     sleeper: SpinSleeper,
 
-    last_loop_start: Instant,
+    last_loop_start: Option<Instant>,
+    last_loop_end: Instant,
     last_report: Instant,
     delta_sum: Duration,
     delta_count: u32,
@@ -104,7 +105,8 @@ impl LoopHelperBuilder {
             report_interval: interval,
             sleeper: self.sleeper.unwrap_or_else(SpinSleeper::default),
             last_report: now,
-            last_loop_start: now,
+            last_loop_start: None,
+            last_loop_end: now,
             delta_sum: Duration::from_secs(0),
             delta_count: 0,
         }
@@ -125,10 +127,17 @@ impl LoopHelper {
     /// Returns the delta, the duration since the last call to `loop_start` or `loop_start_s`.
     pub fn loop_start(&mut self) -> Duration {
         let it_start = Instant::now();
-        let delta = it_start.duration_since(self.last_loop_start);
-        self.last_loop_start = it_start;
-        self.delta_sum += delta;
-        self.delta_count += 1;
+
+        let delta;
+        if let Some(last_loop_start) = self.last_loop_start {
+            delta = it_start.duration_since(last_loop_start);
+            self.delta_sum += delta;
+            self.delta_count += 1;
+        } else {
+            delta = Duration::from_secs(0);
+        }
+
+        self.last_loop_start = Some(it_start);
         delta
     }
 
@@ -143,9 +152,12 @@ impl LoopHelper {
     /// has elapsed. Uses a [`SpinSleeper`](struct.SpinSleeper.html) to sleep the thread to provide
     /// improved accuracy. If the delta has already elapsed this method returns immediately.
     pub fn loop_sleep(&mut self) {
-        let elapsed = self.last_loop_start.elapsed();
+        let elapsed = self.last_loop_end.elapsed();
         if elapsed < self.target_delta {
             self.sleeper.sleep(self.target_delta - elapsed);
+            self.last_loop_end += self.target_delta;
+        } else {
+            self.last_loop_end = Instant::now();
         }
     }
 
@@ -155,9 +167,12 @@ impl LoopHelper {
     /// calls `thread::sleep` and will never spin. This is less accurate than
     /// [`loop_sleep`](struct.LoopHelper.html#method.loop_sleep) but less CPU intensive.
     pub fn loop_sleep_no_spin(&mut self) {
-        let elapsed = self.last_loop_start.elapsed();
+        let elapsed = self.last_loop_end.elapsed();
         if elapsed < self.target_delta {
             thread_sleep(self.target_delta - elapsed);
+            self.last_loop_end += self.target_delta;
+        } else {
+            self.last_loop_end = Instant::now();
         }
     }
 
