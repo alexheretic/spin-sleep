@@ -14,7 +14,7 @@ thread::sleep to wait the bulk of a sleep time, and spin the final section to gu
 accuracy.
 
 ### SpinSleeper
-Simplest usage with default native accuracy is a drop in replacement for `thread::sleep`.
+The simplest usage with default native accuracy is a drop in replacement for `thread::sleep`.
 ```rust
 spin_sleep::sleep(Duration::new(1, 12_550_000));
 ```
@@ -26,12 +26,12 @@ constructing a `SpinSleeper`.
 let spin_sleeper = spin_sleep::SpinSleeper::new(100_000);
 
 // Sleep for 1.01255 seconds, this will:
-//  - thread:sleep for 1.01245 seconds, ie 100μs less than the requested duration
+//  - thread:sleep for 1.01245 seconds, i.e., 100μs less than the requested duration
 //  - spin until total 1.01255 seconds have elapsed
 spin_sleeper.sleep(Duration::new(1, 12_550_000));
 ```
 
-Sleep can also requested in `f64` seconds or `u64` nanoseconds
+Sleep can also be requested in `f64` seconds or `u64` nanoseconds
 (useful when used with `time` crate)
 
 ```rust
@@ -45,7 +45,7 @@ let sleeper = SpinSleeper::default();
 ```
 
 ### LoopHelper
-For controlling & report rates (e.g. game FPS) this crate provides `LoopHelper`. A `SpinSleeper` is used to maximise
+For controlling & report rates (e.g., game FPS) this crate provides `LoopHelper`. A `SpinSleeper` is used to maximise
 sleeping accuracy.
 
 ```rust
@@ -68,13 +68,13 @@ loop {
 
     // render_fps(current_fps);
 
-    loop_helper.loop_sleep(); // sleeps to acheive a 250 FPS rate
+    loop_helper.loop_sleep(); // sleeps to achieve a 250 FPS rate
 }
 ```
 
 ### Windows Accuracy
 Windows has particularly poor accuracy by default (~15ms), `spin_sleep` will automatically
-select the best accuracy on windows generally achieving ~1ms native sleep accuracy *(Since 0.3.3)*.
+select the best accuracy on Windows generally achieving ~1ms native sleep accuracy *(Since 0.3.3)*.
 
 ## Minimum supported rust compiler
 This crate is maintained with [latest stable rust](https://gist.github.com/alexheretic/d1e98d8433b602e57f5d0a9637927e0c).

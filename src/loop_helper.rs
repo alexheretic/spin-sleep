@@ -1,8 +1,5 @@
 use super::*;
-use std::{
-    f64,
-    time::{Duration, Instant},
-};
+use std::time::{Duration, Instant};
 
 /// Tool for loop rate reporting and control.
 ///
@@ -34,7 +31,7 @@ use std::{
 ///
 ///     // render_fps(current_fps);
 ///
-///     loop_helper.loop_sleep(); // sleeps to acheive a 250 FPS rate
+///     loop_helper.loop_sleep(); // sleeps to achieve a 250 FPS rate
 /// }
 /// ```
 #[derive(Debug, Clone, PartialEq, Eq)]

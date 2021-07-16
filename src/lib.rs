@@ -10,7 +10,7 @@
 //!
 //! # Examples
 //!
-//! Simplest usage with default native accuracy is a drop in replacement for `thread::sleep`.
+//! The simplest usage with default native accuracy is a drop in replacement for `thread::sleep`.
 //! ```no_run
 //! # use std::time::Duration;
 //! spin_sleep::sleep(Duration::new(1, 12_550_000));
@@ -24,12 +24,12 @@
 //! let spin_sleeper = spin_sleep::SpinSleeper::new(100_000);
 //!
 //! // Sleep for 1.01255 seconds, this will:
-//! //  - thread:sleep for 1.01245 seconds, ie 100μs less than the requested duration
+//! //  - thread:sleep for 1.01245 seconds, i.e., 100μs less than the requested duration
 //! //  - spin until total 1.01255 seconds have elapsed
 //! spin_sleeper.sleep(Duration::new(1, 12_550_000));
 //! ```
 //!
-//! Sleep can also requested in `f64` seconds or `u64` nanoseconds
+//! Sleep can also be requested in `f64` seconds or `u64` nanoseconds
 //! (useful when used with `time` crate)
 //!
 //! ```no_run
