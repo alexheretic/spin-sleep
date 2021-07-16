@@ -205,9 +205,7 @@ mod spin_sleep_test {
         ($test:stmt) => {{
             let mut error = None;
             for _ in 0..50 {
-                match ::std::panic::catch_unwind(|| {
-                    $test;
-                }) {
+                match ::std::panic::catch_unwind(|| $test) {
                     Ok(_) => break,
                     Err(err) => {
                         // test is failing, maybe due to spin unreliability
