@@ -71,8 +71,7 @@ pub struct SpinSleeper {
 #[cfg(not(windows))]
 const DEFAULT_NATIVE_SLEEP_ACCURACY: SubsecondNanoseconds = 125_000;
 
-/// Asks the OS to put the current thread to sleep for at least the
-/// specified amount of time.
+/// Asks the OS to put the current thread to sleep for at least the specified amount of time.
 ///
 /// **Windows**: Automatically selects the best native sleep accuracy generally achieving ~1ms
 /// native sleep accuracy, instead of default ~16ms.
@@ -101,8 +100,7 @@ static MIN_TIME_PERIOD: once_cell::sync::Lazy<winapi::shared::minwindef::UINT> =
         }
     });
 
-/// Asks the OS to put the current thread to sleep for at least the
-/// specified amount of time.
+/// Asks the OS to put the current thread to sleep for at least the specified amount of time.
 ///
 /// **Windows**: Automatically selects the best native sleep accuracy generally achieving ~1ms
 /// native sleep accuracy, instead of default ~16ms.
