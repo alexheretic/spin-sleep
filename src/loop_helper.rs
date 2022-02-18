@@ -99,7 +99,7 @@ impl LoopHelperBuilder {
         LoopHelper {
             target_delta: Duration::from_secs_f64(1.0 / target_rate.into()),
             report_interval: interval,
-            sleeper: self.sleeper.unwrap_or_else(SpinSleeper::default),
+            sleeper: self.sleeper.unwrap_or_default(),
             last_report: now,
             last_loop_start: now,
             delta_sum: Duration::from_secs(0),
@@ -154,7 +154,7 @@ impl LoopHelper {
     pub fn loop_sleep_no_spin(&mut self) {
         let elapsed = self.last_loop_start.elapsed();
         if elapsed < self.target_delta {
-            thread_sleep(self.target_delta - elapsed);
+            native_sleep(self.target_delta - elapsed);
         }
     }
 

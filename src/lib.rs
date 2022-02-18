@@ -49,7 +49,7 @@ mod loop_helper;
 
 pub use crate::loop_helper::*;
 use std::{
-    thread,
+    hint, thread,
     time::{Duration, Instant},
 };
 
@@ -71,9 +71,14 @@ pub struct SpinSleeper {
 #[cfg(not(windows))]
 const DEFAULT_NATIVE_SLEEP_ACCURACY: SubsecondNanoseconds = 125_000;
 
+/// Asks the OS to put the current thread to sleep for at least the
+/// specified amount of time.
+///
+/// **Windows**: Automatically selects the best native sleep accuracy generally achieving ~1ms
+/// native sleep accuracy, instead of default ~16ms.
 #[cfg(not(windows))]
 #[inline]
-pub(crate) fn thread_sleep(duration: Duration) {
+pub fn native_sleep(duration: Duration) {
     thread::sleep(duration)
 }
 
@@ -96,9 +101,14 @@ static MIN_TIME_PERIOD: once_cell::sync::Lazy<winapi::shared::minwindef::UINT> =
         }
     });
 
+/// Asks the OS to put the current thread to sleep for at least the
+/// specified amount of time.
+///
+/// **Windows**: Automatically selects the best native sleep accuracy generally achieving ~1ms
+/// native sleep accuracy, instead of default ~16ms.
 #[cfg(windows)]
 #[inline]
-pub(crate) fn thread_sleep(duration: Duration) {
+pub fn native_sleep(duration: Duration) {
     unsafe {
         use winapi::um::timeapi::{timeBeginPeriod, timeEndPeriod};
         timeBeginPeriod(*MIN_TIME_PERIOD);
@@ -140,15 +150,26 @@ impl SpinSleeper {
     /// **Windows**: Automatically selects the best native sleep accuracy generally achieving ~1ms
     /// native sleep accuracy, instead of default ~16ms.
     pub fn sleep(self, duration: Duration) {
+        self.sleep_with(SpinStrategy::YieldThread, duration)
+    }
+
+    #[inline]
+    pub fn sleep_with(self, strategy: SpinStrategy, duration: Duration) {
         let start = Instant::now();
         let accuracy = Duration::new(0, self.native_accuracy_ns);
         if duration > accuracy {
-            thread_sleep(duration - accuracy);
+            native_sleep(duration - accuracy);
         }
+        let mut spins = 0_u32;
         // spin the rest of the duration
         while start.elapsed() < duration {
-            thread::yield_now();
+            match strategy {
+                SpinStrategy::YieldThread => thread::yield_now(),
+                SpinStrategy::SpinLoopHint => hint::spin_loop(),
+            }
+            spins += 1;
         }
+        eprintln!("spins: {spins}");
     }
 
     /// Puts the current thread to sleep, if duration is long enough, then spins until the
@@ -186,6 +207,12 @@ impl SpinSleeper {
 /// native sleep accuracy, instead of default ~16ms.
 pub fn sleep(duration: Duration) {
     SpinSleeper::default().sleep(duration);
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum SpinStrategy {
+    YieldThread,
+    SpinLoopHint,
 }
 
 // Not run unless specifically enabled with `cargo test --features "nondeterministic_tests"`
@@ -311,34 +338,4 @@ mod spin_sleep_test {
             );
         });
     }
-}
-
-#[test]
-#[ignore]
-fn print_estimated_thread_sleep_accuracy() {
-    let mut best = Duration::from_secs(100);
-    let mut sum = Duration::from_secs(0);
-    let mut worst = Duration::from_secs(0);
-
-    for _ in 0..100 {
-        let before = Instant::now();
-        thread_sleep(Duration::new(0, 1));
-        let elapsed = before.elapsed();
-        sum += elapsed;
-        if elapsed < best {
-            best = elapsed;
-        }
-        if elapsed > worst {
-            worst = elapsed;
-        }
-    }
-
-    println!(
-        "average: {:?}, best : {:?}, worst: {:?}",
-        Duration::from_nanos((sum.subsec_nanos() / 100).into()),
-        best,
-        worst,
-    );
-
-    panic!("Manual use only, ignore when done");
 }
