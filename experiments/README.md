@@ -9,12 +9,12 @@ Call OS native sleep for **1ns** and see how long it actually takes.
 cargo run --bin native_sleep_accuracy --release
 ```
 
-**Linux example output**
+**Linux example output** *
 ```
 average: 53.04µs, best : 7.95µs, worst: 85.238µs
 ```
 
-**Windows example output**
+**Windows example output** *
 ```
 average: 2.012432ms, best : 2.0069ms, worst: 2.1455ms
 ```
@@ -27,7 +27,7 @@ _5ms, 900µs, 5µs, 100ns_.
 cargo run --bin spin_strategy_latency --release
 ```
 
-**Linux example output**
+**Linux example output** *
 ```
 warming up...
 5ms    None          avg-spins: 191610   avg-actual: 5.000044ms
@@ -44,7 +44,7 @@ warming up...
 100ns  YieldThread   avg-spins: 1        avg-actual: 181ns
 ```
 
-**Windows example output**
+**Windows example output** *
 ```
 warming up...
 5ms    None          avg-spins: 158591   avg-actual: 5ms
@@ -68,7 +68,7 @@ Do the same measurement as above but while all cores are being stressed.
 cargo run --bin spin_strategy_latency --release -- load
 ```
 
-**Linux example output**
+**Linux example output** *
 ```
 Simulating 16 thread load
 warming up...
@@ -86,7 +86,7 @@ warming up...
 100ns  YieldThread   avg-spins: 1        avg-actual: 278ns
 ```
 
-**Windows example output**
+**Windows example output** *
 ```
 Simulating 16 thread load
 warming up...
@@ -103,3 +103,5 @@ warming up...
 100ns  SpinLoopHint  avg-spins: 0        avg-actual: 102ns
 100ns  YieldThread   avg-spins: 0        avg-actual: 7.716038ms
 ```
+
+\* _Measured 2022-02-18 with a AMD 5800X_.
