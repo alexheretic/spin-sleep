@@ -1,5 +1,6 @@
 # spin_sleep experiments
-Experiments to measure latency, all machine specific & non-deterministic.
+Experiments to measure latency all machine specific & non-deterministic but are used to determine
+good default settings for _spin_sleep_.
 
 ## native_sleep_accuracy
 Call OS native sleep for **1ns** and see how long it actually takes.
@@ -29,18 +30,18 @@ cargo run --bin spin_strategy_latency --release
 **Linux example output**
 ```
 warming up...
-5ms-None:               avg-spins: 190879  avg-actual: 5.000048ms
-5ms-SpinLoopHint:       avg-spins: 168775  avg-actual: 5.000052ms
-5ms-YieldThread:        avg-spins: 39381   avg-actual: 5.000103ms
-900µs-None:             avg-spins: 34525   avg-actual: 900.046µs
-900µs-SpinLoopHint:     avg-spins: 30454   avg-actual: 900.047µs
-900µs-YieldThread:      avg-spins: 7046    avg-actual: 900.098µs
-5µs-None:               avg-spins: 191     avg-actual: 5.042µs
-5µs-SpinLoopHint:       avg-spins: 166     avg-actual: 5.041µs
-5µs-YieldThread:        avg-spins: 39      avg-actual: 5.074µs
-100ns-None:             avg-spins: 3       avg-actual: 128ns
-100ns-SpinLoopHint:     avg-spins: 3       avg-actual: 135ns
-100ns-YieldThread:      avg-spins: 1       avg-actual: 176ns
+5ms    None          avg-spins: 191610   avg-actual: 5.000044ms
+5ms    SpinLoopHint  avg-spins: 176594   avg-actual: 5.000045ms
+5ms    YieldThread   avg-spins: 38366    avg-actual: 5.000105ms
+900µs  None          avg-spins: 34340    avg-actual: 900.05µs
+900µs  SpinLoopHint  avg-spins: 31633    avg-actual: 900.052µs
+900µs  YieldThread   avg-spins: 6843     avg-actual: 900.104µs
+5µs    None          avg-spins: 186      avg-actual: 5.04µs
+5µs    SpinLoopHint  avg-spins: 173      avg-actual: 5.048µs
+5µs    YieldThread   avg-spins: 38       avg-actual: 5.075µs
+100ns  None          avg-spins: 3        avg-actual: 135ns
+100ns  SpinLoopHint  avg-spins: 3        avg-actual: 132ns
+100ns  YieldThread   avg-spins: 1        avg-actual: 181ns
 ```
 
 **Windows example output**
@@ -71,18 +72,18 @@ cargo run --bin spin_strategy_latency --release -- load
 ```
 Simulating 16 thread load
 warming up...
-5ms-None:               avg-spins: 158992  avg-actual: 5.000057ms
-5ms-SpinLoopHint:       avg-spins: 121884  avg-actual: 5.000243ms
-5ms-YieldThread:        avg-spins: 23072   avg-actual: 5.000157ms
-900µs-None:             avg-spins: 28287   avg-actual: 911.087µs
-900µs-SpinLoopHint:     avg-spins: 21785   avg-actual: 906.957µs
-900µs-YieldThread:      avg-spins: 4070    avg-actual: 914.979µs
-5µs-None:               avg-spins: 158     avg-actual: 6.049µs
-5µs-SpinLoopHint:       avg-spins: 121     avg-actual: 5.795µs
-5µs-YieldThread:        avg-spins: 23      avg-actual: 24.089µs
-100ns-None:             avg-spins: 2       avg-actual: 148ns
-100ns-SpinLoopHint:     avg-spins: 2       avg-actual: 136ns
-100ns-YieldThread:      avg-spins: 1       avg-actual: 274ns
+5ms    None          avg-spins: 159018   avg-actual: 5.000058ms
+5ms    SpinLoopHint  avg-spins: 122263   avg-actual: 5.000065ms
+5ms    YieldThread   avg-spins: 23265    avg-actual: 5.000327ms
+900µs  None          avg-spins: 27748    avg-actual: 938.427µs
+900µs  SpinLoopHint  avg-spins: 21727    avg-actual: 900.062µs
+900µs  YieldThread   avg-spins: 4054     avg-actual: 901.31µs
+5µs    None          avg-spins: 157      avg-actual: 5.055µs
+5µs    SpinLoopHint  avg-spins: 122      avg-actual: 5.057µs
+5µs    YieldThread   avg-spins: 23       avg-actual: 5.07µs
+100ns  None          avg-spins: 2        avg-actual: 147ns
+100ns  SpinLoopHint  avg-spins: 1        avg-actual: 135ns
+100ns  YieldThread   avg-spins: 1        avg-actual: 278ns
 ```
 
 **Windows example output**

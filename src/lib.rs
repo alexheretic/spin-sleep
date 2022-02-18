@@ -49,7 +49,7 @@ mod loop_helper;
 
 pub use crate::loop_helper::*;
 use std::{
-    hint, thread,
+    thread,
     time::{Duration, Instant},
 };
 
@@ -150,9 +150,14 @@ impl SpinSleeper {
     /// **Windows**: Automatically selects the best native sleep accuracy generally achieving ~1ms
     /// native sleep accuracy, instead of default ~16ms.
     pub fn sleep(self, duration: Duration) {
-        self.sleep_with(SpinStrategy::YieldThread, duration)
+        self.sleep_with(SpinStrategy::default(), duration)
     }
 
+    /// Puts the current thread to sleep, if duration is long enough, then spins until the
+    /// specified duration has elapsed using the specified [`SpinStrategy`].
+    ///
+    /// **Windows**: Automatically selects the best native sleep accuracy generally achieving ~1ms
+    /// native sleep accuracy, instead of default ~16ms.
     #[inline]
     pub fn sleep_with(self, strategy: SpinStrategy, duration: Duration) {
         let start = Instant::now();
@@ -160,16 +165,13 @@ impl SpinSleeper {
         if duration > accuracy {
             native_sleep(duration - accuracy);
         }
-        let mut spins = 0_u32;
         // spin the rest of the duration
         while start.elapsed() < duration {
             match strategy {
                 SpinStrategy::YieldThread => thread::yield_now(),
-                SpinStrategy::SpinLoopHint => hint::spin_loop(),
+                SpinStrategy::SpinLoopHint => std::hint::spin_loop(),
             }
-            spins += 1;
         }
-        eprintln!("spins: {spins}");
     }
 
     /// Puts the current thread to sleep, if duration is long enough, then spins until the
@@ -210,9 +212,28 @@ pub fn sleep(duration: Duration) {
 }
 
 #[derive(Debug, Clone, Copy)]
+#[non_exhaustive]
 pub enum SpinStrategy {
+    /// Call [`std::thread::yield_now`] while spinning.
     YieldThread,
+    /// Call [`std::hint::spin_loop`] while spinning.
     SpinLoopHint,
+}
+
+/// Per-OS default strategy.
+/// * Windows  `SpinLoopHint`
+/// * !Windows `YieldThread`
+impl Default for SpinStrategy {
+    #[inline]
+    #[cfg(windows)]
+    fn default() -> Self {
+        Self::SpinLoopHint
+    }
+    #[inline]
+    #[cfg(not(windows))]
+    fn default() -> Self {
+        Self::YieldThread
+    }
 }
 
 // Not run unless specifically enabled with `cargo test --features "nondeterministic_tests"`
