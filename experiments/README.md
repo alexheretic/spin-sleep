@@ -13,6 +13,11 @@ cargo run --bin native_sleep_accuracy --release
 average: 53.04µs, best : 7.95µs, worst: 85.238µs
 ```
 
+**Windows example output**
+```
+average: 2.012432ms, best : 2.0069ms, worst: 2.1455ms
+```
+
 ## spin_strategy_latency
 Measure `SpinStrategy` latencies and spin counts across various wait durations
 _5ms, 900µs, 5µs, 100ns_.
@@ -38,6 +43,23 @@ warming up...
 100ns-YieldThread:      avg-spins: 1       avg-actual: 176ns
 ```
 
+**Windows example output**
+```
+warming up...
+5ms    None          avg-spins: 158591   avg-actual: 5ms
+5ms    SpinLoopHint  avg-spins: 134568   avg-actual: 5ms
+5ms    YieldThread   avg-spins: 50380    avg-actual: 5.000039ms
+900µs  None          avg-spins: 28491    avg-actual: 900µs
+900µs  SpinLoopHint  avg-spins: 24128    avg-actual: 900.002µs
+900µs  YieldThread   avg-spins: 9070     avg-actual: 900.033µs
+5µs    None          avg-spins: 155      avg-actual: 5µs
+5µs    SpinLoopHint  avg-spins: 133      avg-actual: 5µs
+5µs    YieldThread   avg-spins: 49       avg-actual: 5.042µs
+100ns  None          avg-spins: 0        avg-actual: 100ns
+100ns  SpinLoopHint  avg-spins: 0        avg-actual: 100ns
+100ns  YieldThread   avg-spins: 1        avg-actual: 102ns
+```
+
 ## spin_strategy_latency under load
 Do the same measurement as above but while all cores are being stressed.
 
@@ -61,4 +83,22 @@ warming up...
 100ns-None:             avg-spins: 2       avg-actual: 148ns
 100ns-SpinLoopHint:     avg-spins: 2       avg-actual: 136ns
 100ns-YieldThread:      avg-spins: 1       avg-actual: 274ns
+```
+
+**Windows example output**
+```
+Simulating 16 thread load
+warming up...
+5ms    None          avg-spins: 105568   avg-actual: 5.838449ms
+5ms    SpinLoopHint  avg-spins: 79548    avg-actual: 5.608363ms
+5ms    YieldThread   avg-spins: 1        avg-actual: 17.526351ms
+900µs  None          avg-spins: 19461    avg-actual: 1.127537ms
+900µs  SpinLoopHint  avg-spins: 14578    avg-actual: 1.326708ms
+900µs  YieldThread   avg-spins: 1        avg-actual: 17.526448ms
+5µs    None          avg-spins: 108      avg-actual: 5µs
+5µs    SpinLoopHint  avg-spins: 79       avg-actual: 6.298µs
+5µs    YieldThread   avg-spins: 1        avg-actual: 11.417271ms
+100ns  None          avg-spins: 1        avg-actual: 101ns
+100ns  SpinLoopHint  avg-spins: 0        avg-actual: 102ns
+100ns  YieldThread   avg-spins: 0        avg-actual: 7.716038ms
 ```

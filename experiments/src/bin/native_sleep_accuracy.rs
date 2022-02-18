@@ -25,7 +25,7 @@ fn main() {
 
     println!(
         "average: {:?}, best : {:?}, worst: {:?}",
-        Duration::from_nanos((sum.subsec_nanos() / 100).into()),
+        Duration::from_nanos(u64::try_from(sum.as_nanos() / 100).unwrap()),
         best,
         worst,
     );

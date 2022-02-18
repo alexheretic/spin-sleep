@@ -1,4 +1,3 @@
-use spin_sleep::SpinStrategy;
 use std::time::{Duration, Instant};
 
 fn main() {
@@ -35,9 +34,9 @@ fn main() {
         Duration::from_nanos(100),
     ] {
         for strategy in [
-            None,
-            Some(SpinStrategy::SpinLoopHint),
-            Some(SpinStrategy::YieldThread),
+            SpinStrategy::None,
+            SpinStrategy::SpinLoopHint,
+            SpinStrategy::YieldThread,
         ] {
             let mut sum = Duration::from_secs(0);
             let mut spins = 0_u32;
@@ -46,23 +45,27 @@ fn main() {
                 let before = Instant::now();
                 while before.elapsed() < duration {
                     match strategy {
-                        Some(SpinStrategy::YieldThread) => std::thread::yield_now(),
-                        Some(SpinStrategy::SpinLoopHint) => std::hint::spin_loop(),
-                        None => {}
+                        SpinStrategy::YieldThread => std::thread::yield_now(),
+                        SpinStrategy::SpinLoopHint => std::hint::spin_loop(),
+                        SpinStrategy::None => {}
                     }
                     spins += 1;
                 }
-                let elapsed = before.elapsed();
-                sum += elapsed;
+                sum += before.elapsed();
             }
             println!(
-                "{duration:?}-{}\tavg-spins: {:<7} avg-actual: {:?}",
-                strategy
-                    .map(|s| format!("{s:?}:"))
-                    .unwrap_or_else(|| "None:        ".into()),
+                "{duration: <6?} {: <13} avg-spins: {:<8} avg-actual: {:?}",
+                format!("{strategy:?}"),
                 spins / 100,
-                Duration::from_nanos((sum.subsec_nanos() / 100).into()),
+                Duration::from_nanos(u64::try_from(sum.as_nanos() / 100).unwrap()),
             );
         }
     }
+}
+
+#[derive(Debug, Clone, Copy)]
+enum SpinStrategy {
+    None,
+    YieldThread,
+    SpinLoopHint,
 }
