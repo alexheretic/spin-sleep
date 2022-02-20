@@ -8,7 +8,7 @@
 //! `thread::sleep` to wait the bulk of a sleep time, and spin the final section to guarantee
 //! accuracy.
 //!
-//! # Examples
+//! # Example: Replace `thread::sleep`
 //!
 //! The simplest usage with default native accuracy is a drop in replacement for `thread::sleep`.
 //! ```no_run
@@ -16,12 +16,14 @@
 //! spin_sleep::sleep(Duration::new(1, 12_550_000));
 //! ```
 //!
+//! # Example: Configure
 //! More advanced usage, including setting a custom native accuracy, can be achieved by
 //! constructing a `SpinSleeper`.
 //! ```no_run
 //! # use std::time::Duration;
 //! // Create a new sleeper that trusts native thread::sleep with 100μs accuracy
-//! let spin_sleeper = spin_sleep::SpinSleeper::new(100_000);
+//! let spin_sleeper = spin_sleep::SpinSleeper::new(100_000)
+//!     .with_spin_strategy(spin_sleep::SpinStrategy::YieldThread);
 //!
 //! // Sleep for 1.01255 seconds, this will:
 //! //  - thread:sleep for 1.01245 seconds, i.e., 100μs less than the requested duration
@@ -39,7 +41,7 @@
 //! spin_sleeper.sleep_ns(1_012_550_000);
 //! ```
 //!
-//! OS-specific default accuracy settings should be good enough for most cases.
+//! OS-specific default settings should be good enough for most cases.
 //! ```
 //! # use spin_sleep::SpinSleeper;
 //! let sleeper = SpinSleeper::default();
@@ -66,14 +68,17 @@ pub type SubsecondNanoseconds = u32;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct SpinSleeper {
     native_accuracy_ns: u32,
+    spin_strategy: SpinStrategy,
 }
 
 #[cfg(not(windows))]
 const DEFAULT_NATIVE_SLEEP_ACCURACY: SubsecondNanoseconds = 125_000;
 
 /// Asks the OS to put the current thread to sleep for at least the specified amount of time.
-///
-/// **Windows**: Automatically selects the best native sleep accuracy generally achieving ~1ms
+/// **Does not spin.**
+/// 
+/// Equivalent to [`std::thread::sleep`], with the following exceptions:
+/// * **Windows**: Automatically selects the best native sleep accuracy generally achieving ~1ms
 /// native sleep accuracy, instead of default ~16ms.
 #[cfg(not(windows))]
 #[inline]
@@ -101,8 +106,9 @@ static MIN_TIME_PERIOD: once_cell::sync::Lazy<winapi::shared::minwindef::UINT> =
     });
 
 /// Asks the OS to put the current thread to sleep for at least the specified amount of time.
-///
-/// **Windows**: Automatically selects the best native sleep accuracy generally achieving ~1ms
+/// 
+/// Equivalent to [`std::thread::sleep`], with the following exceptions:
+/// * **Windows**: Automatically selects the best native sleep accuracy generally achieving ~1ms
 /// native sleep accuracy, instead of default ~16ms.
 #[cfg(windows)]
 #[inline]
@@ -131,33 +137,41 @@ impl Default for SpinSleeper {
 impl SpinSleeper {
     /// Constructs new SpinSleeper with the input native sleep accuracy.
     /// The lower the `native_accuracy_ns` the more we effectively trust the accuracy of the
-    /// `thread::sleep` function.
+    /// [`native_sleep`] function.
     #[inline]
     pub fn new(native_accuracy_ns: SubsecondNanoseconds) -> SpinSleeper {
-        SpinSleeper { native_accuracy_ns }
+        SpinSleeper {
+            native_accuracy_ns,
+            spin_strategy: <_>::default(),
+        }
     }
 
-    /// Returns configured native_accuracy_ns
+    /// Returns configured native_accuracy_ns.
     pub fn native_accuracy_ns(self) -> SubsecondNanoseconds {
         self.native_accuracy_ns
     }
 
-    /// Puts the current thread to sleep, if duration is long enough, then spins until the
-    /// specified duration has elapsed.
-    ///
-    /// **Windows**: Automatically selects the best native sleep accuracy generally achieving ~1ms
-    /// native sleep accuracy, instead of default ~16ms.
-    pub fn sleep(self, duration: Duration) {
-        self.sleep_with(SpinStrategy::default(), duration)
+    /// Returns configured spin strategy.
+    pub fn spin_strategy(self) -> SpinStrategy {
+        self.spin_strategy
     }
 
-    /// Puts the current thread to sleep, if duration is long enough, then spins until the
-    /// specified duration has elapsed using the specified [`SpinStrategy`].
+    /// Returns a spin sleeper with the given [`SpinStrategy`].
     ///
-    /// **Windows**: Automatically selects the best native sleep accuracy generally achieving ~1ms
-    /// native sleep accuracy, instead of default ~16ms.
-    #[inline]
-    pub fn sleep_with(self, strategy: SpinStrategy, duration: Duration) {
+    /// # Example
+    /// ```no_run
+    /// use spin_sleep::{SpinSleeper, SpinStrategy};
+    ///
+    /// let sleeper = SpinSleeper::default().with_spin_strategy(SpinStrategy::SpinLoopHint);
+    /// ```
+    pub fn with_spin_strategy(mut self, strategy: SpinStrategy) -> Self {
+        self.spin_strategy = strategy;
+        self
+    }
+
+    /// Puts the [current thread to sleep](fn.native_sleep.html) for the duration less the 
+    /// configured native accuracy. Then spins until the specified duration has elapsed.
+    pub fn sleep(self, duration: Duration) {
         let start = Instant::now();
         let accuracy = Duration::new(0, self.native_accuracy_ns);
         if duration > accuracy {
@@ -165,29 +179,23 @@ impl SpinSleeper {
         }
         // spin the rest of the duration
         while start.elapsed() < duration {
-            match strategy {
+            match self.spin_strategy {
                 SpinStrategy::YieldThread => thread::yield_now(),
                 SpinStrategy::SpinLoopHint => std::hint::spin_loop(),
             }
         }
     }
 
-    /// Puts the current thread to sleep, if duration is long enough, then spins until the
-    /// specified second duration has elapsed.
-    ///
-    /// **Windows**: Automatically selects the best native sleep accuracy generally achieving ~1ms
-    /// native sleep accuracy, instead of default ~16ms.
+    /// Puts the [current thread to sleep](fn.native_sleep.html) for the give seconds-duration
+    /// less the configured native accuracy. Then spins until the specified duration has elapsed.
     pub fn sleep_s(self, seconds: Seconds) {
         if seconds > 0.0 {
             self.sleep(Duration::from_secs_f64(seconds));
         }
     }
 
-    /// Puts the current thread to sleep, if duration is long enough, then spins until the
-    /// specified nanosecond duration has elapsed.
-    ///
-    /// **Windows**: Automatically selects the best native sleep accuracy generally achieving ~1ms
-    /// native sleep accuracy, instead of default ~16ms.
+    /// Puts the [current thread to sleep](fn.native_sleep.html) for the give nanoseconds-duration
+    /// less the configured native accuracy. Then spins until the specified duration has elapsed.
     pub fn sleep_ns(self, nanoseconds: Nanoseconds) {
         let subsec_ns = (nanoseconds % 1_000_000_000) as u32;
         let seconds = nanoseconds / 1_000_000_000;
@@ -195,21 +203,17 @@ impl SpinSleeper {
     }
 }
 
-/// Puts the current thread to sleep, if duration is long enough, then spins until the
-/// specified nanosecond duration has elapsed.
-///
-/// Uses default native accuracy.
+/// Puts the [current thread to sleep](fn.native_sleep.html) for the duration less the 
+/// default native accuracy. Then spins until the specified duration has elapsed.
 ///
 /// Convenience function for `SpinSleeper::default().sleep(duration)`. Can directly take the
 /// place of `thread::sleep`.
-///
-/// **Windows**: Automatically selects the best native sleep accuracy generally achieving ~1ms
-/// native sleep accuracy, instead of default ~16ms.
 pub fn sleep(duration: Duration) {
     SpinSleeper::default().sleep(duration);
 }
 
-#[derive(Debug, Clone, Copy)]
+/// What to do while spinning.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 #[non_exhaustive]
 pub enum SpinStrategy {
     /// Call [`std::thread::yield_now`] while spinning.
