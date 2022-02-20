@@ -19,11 +19,13 @@ The simplest usage with default native accuracy is a drop in replacement for `th
 spin_sleep::sleep(Duration::new(1, 12_550_000));
 ```
 
+#### Configure
 More advanced usage, including setting a custom native accuracy, can be achieved by
 constructing a `SpinSleeper`.
 ```rust
 // Create a new sleeper that trusts native thread::sleep with 100μs accuracy
-let spin_sleeper = spin_sleep::SpinSleeper::new(100_000);
+let spin_sleeper = spin_sleep::SpinSleeper::new(100_000)
+    .with_spin_strategy(spin_sleep::SpinStrategy::YieldThread);
 
 // Sleep for 1.01255 seconds, this will:
 //  - thread:sleep for 1.01245 seconds, i.e., 100μs less than the requested duration
@@ -39,7 +41,7 @@ spin_sleeper.sleep_s(1.01255);
 spin_sleeper.sleep_ns(1_012_550_000);
 ```
 
-OS-specific default accuracy settings should be good enough for most cases.
+OS-specific default settings should be good enough for most cases.
 ```rust
 let sleeper = SpinSleeper::default();
 ```
