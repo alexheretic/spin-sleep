@@ -76,7 +76,7 @@ const DEFAULT_NATIVE_SLEEP_ACCURACY: SubsecondNanoseconds = 125_000;
 
 /// Asks the OS to put the current thread to sleep for at least the specified amount of time.
 /// **Does not spin.**
-/// 
+///
 /// Equivalent to [`std::thread::sleep`], with the following exceptions:
 /// * **Windows**: Automatically selects the best native sleep accuracy generally achieving ~1ms
 /// native sleep accuracy, instead of default ~16ms.
@@ -106,7 +106,7 @@ static MIN_TIME_PERIOD: once_cell::sync::Lazy<winapi::shared::minwindef::UINT> =
     });
 
 /// Asks the OS to put the current thread to sleep for at least the specified amount of time.
-/// 
+///
 /// Equivalent to [`std::thread::sleep`], with the following exceptions:
 /// * **Windows**: Automatically selects the best native sleep accuracy generally achieving ~1ms
 /// native sleep accuracy, instead of default ~16ms.
@@ -169,7 +169,7 @@ impl SpinSleeper {
         self
     }
 
-    /// Puts the [current thread to sleep](fn.native_sleep.html) for the duration less the 
+    /// Puts the [current thread to sleep](fn.native_sleep.html) for the duration less the
     /// configured native accuracy. Then spins until the specified duration has elapsed.
     pub fn sleep(self, duration: Duration) {
         let start = Instant::now();
@@ -203,7 +203,7 @@ impl SpinSleeper {
     }
 }
 
-/// Puts the [current thread to sleep](fn.native_sleep.html) for the duration less the 
+/// Puts the [current thread to sleep](fn.native_sleep.html) for the duration less the
 /// default native accuracy. Then spins until the specified duration has elapsed.
 ///
 /// Convenience function for `SpinSleeper::default().sleep(duration)`. Can directly take the
@@ -252,7 +252,7 @@ mod spin_sleep_test {
     // Since on spin performance is not guaranteed it suffices that the assertions are valid
     // 'most of the time'. This macro should avoid most 1-off failures.
     macro_rules! passes_eventually {
-        ($test:stmt) => {{
+        ($test:expr) => {{
             let mut error = None;
             for _ in 0..50 {
                 match ::std::panic::catch_unwind(|| $test) {
@@ -282,15 +282,11 @@ mod spin_sleep_test {
 
             let before = Instant::now();
             ps.sleep(Duration::new(0, ns_duration));
-            let after = Instant::now();
+            let elapsed = before.elapsed();
 
-            println!("Actual: {:?}", after.duration_since(before));
-            assert!(
-                after.duration_since(before) <= Duration::new(0, ns_duration + ACCEPTABLE_DELTA_NS)
-            );
-            assert!(
-                after.duration_since(before) >= Duration::new(0, ns_duration - ACCEPTABLE_DELTA_NS)
-            );
+            println!("Actual: {:?}", elapsed);
+            assert!(elapsed <= Duration::new(0, ns_duration + ACCEPTABLE_DELTA_NS));
+            assert!(elapsed >= Duration::new(0, ns_duration - ACCEPTABLE_DELTA_NS));
         });
     }
 
@@ -304,15 +300,11 @@ mod spin_sleep_test {
 
             let before = Instant::now();
             ps.sleep(Duration::new(1, ns_duration));
-            let after = Instant::now();
+            let elapsed = before.elapsed();
 
-            println!("Actual: {:?}", after.duration_since(before));
-            assert!(
-                after.duration_since(before) <= Duration::new(1, ns_duration + ACCEPTABLE_DELTA_NS)
-            );
-            assert!(
-                after.duration_since(before) >= Duration::new(1, ns_duration - ACCEPTABLE_DELTA_NS)
-            );
+            println!("Actual: {:?}", elapsed);
+            assert!(elapsed <= Duration::new(1, ns_duration + ACCEPTABLE_DELTA_NS));
+            assert!(elapsed >= Duration::new(1, ns_duration - ACCEPTABLE_DELTA_NS));
         });
     }
 
@@ -326,17 +318,11 @@ mod spin_sleep_test {
 
             let before = Instant::now();
             ps.sleep_s(ns_duration / 1_000_000_000_f64);
-            let after = Instant::now();
+            let elapsed = before.elapsed();
 
-            println!("Actual: {:?}", after.duration_since(before));
-            assert!(
-                after.duration_since(before)
-                    <= Duration::new(0, ns_duration.round() as u32 + ACCEPTABLE_DELTA_NS)
-            );
-            assert!(
-                after.duration_since(before)
-                    >= Duration::new(0, ns_duration.round() as u32 - ACCEPTABLE_DELTA_NS)
-            );
+            println!("Actual: {:?}", elapsed);
+            assert!(elapsed <= Duration::new(0, ns_duration.round() as u32 + ACCEPTABLE_DELTA_NS));
+            assert!(elapsed >= Duration::new(0, ns_duration.round() as u32 - ACCEPTABLE_DELTA_NS));
         });
     }
 
@@ -350,15 +336,11 @@ mod spin_sleep_test {
 
             let before = Instant::now();
             ps.sleep_ns(ns_duration as u64);
-            let after = Instant::now();
+            let elapsed = before.elapsed();
 
-            println!("Actual: {:?}", after.duration_since(before));
-            assert!(
-                after.duration_since(before) <= Duration::new(0, ns_duration + ACCEPTABLE_DELTA_NS)
-            );
-            assert!(
-                after.duration_since(before) >= Duration::new(0, ns_duration - ACCEPTABLE_DELTA_NS)
-            );
+            println!("Actual: {:?}", elapsed);
+            assert!(elapsed <= Duration::new(0, ns_duration + ACCEPTABLE_DELTA_NS));
+            assert!(elapsed >= Duration::new(0, ns_duration - ACCEPTABLE_DELTA_NS));
         });
     }
 }
