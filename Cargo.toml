@@ -1,6 +1,6 @@
 [package]
 name = "spin_sleep"
-version = "1.0.0"
+version = "1.1.0"
 authors = ["Alex Butler <alexheretic@gmail.com>"]
 edition = "2018"
 description = "Accurate sleeping. Only use native sleep as far as it can be trusted, then spin."
