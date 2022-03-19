@@ -125,7 +125,7 @@ impl LoopHelper {
         let delta = it_start.duration_since(self.last_loop_start);
         self.last_loop_start = it_start;
         self.delta_sum += delta;
-        self.delta_count += 1;
+        self.delta_count = self.delta_count.wrapping_add(1);
         delta
     }
 
