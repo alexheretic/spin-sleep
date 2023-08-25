@@ -46,34 +46,6 @@ OS-specific default settings should be good enough for most cases.
 let sleeper = SpinSleeper::default();
 ```
 
-### LoopHelper
-For controlling & report rates (e.g., game FPS) this crate provides `LoopHelper`. A `SpinSleeper` is used to maximise
-sleeping accuracy.
-
-```rust
-use spin_sleep::LoopHelper;
-
-let mut loop_helper = LoopHelper::builder()
-    .report_interval_s(0.5) // report every half a second
-    .build_with_target_rate(250.0); // limit to 250 FPS if possible
-
-let mut current_fps = None;
-
-loop {
-    let delta = loop_helper.loop_start(); // or .loop_start_s() for f64 seconds
-
-    // compute_something(delta);
-
-    if let Some(fps) = loop_helper.report_rate() {
-        current_fps = Some(fps);
-    }
-
-    // render_fps(current_fps);
-
-    loop_helper.loop_sleep(); // sleeps to achieve a 250 FPS rate
-}
-```
-
 ### Windows Accuracy
 Windows has particularly poor accuracy by default (~15ms), `spin_sleep` will automatically
 select the best accuracy on Windows generally achieving ~1ms native sleep accuracy *(Since 0.3.3)*.
