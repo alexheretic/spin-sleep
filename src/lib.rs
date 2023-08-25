@@ -159,7 +159,7 @@ impl SpinSleeper {
     /// Returns a spin sleeper with the given [`SpinStrategy`].
     ///
     /// # Example
-    /// ```no_run
+    /// ```
     /// use spin_sleep::{SpinSleeper, SpinStrategy};
     ///
     /// let sleeper = SpinSleeper::default().with_spin_strategy(SpinStrategy::SpinLoopHint);
