@@ -20,7 +20,7 @@ pub fn native_sleep(duration: Duration) {
 pub(crate) fn min_time_period() -> UINT {
     static MIN_TIME_PERIOD: OnceLock<UINT> = OnceLock::new();
 
-    *MIN_TIME_PERIOD.get_or_init(|| {
+    *MIN_TIME_PERIOD.get_or_init(|| unsafe {
         let tc_size = mem::size_of::<TIMECAPS>() as u32;
         let mut tc = TIMECAPS {
             wPeriodMin: 0,
