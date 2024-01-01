@@ -1,3 +1,6 @@
+# Unreleased (v1.2.0)
+* Windows: Remove _once_cell_ dependency.
+
 # v1.1.1
 * Fix LoopHelper increment overflow handling.
 

@@ -48,8 +48,11 @@
 //! # let _ = sleeper;
 //! ```
 mod loop_helper;
+#[cfg(windows)]
+mod windows;
 
 pub use crate::loop_helper::*;
+
 use std::{
     thread,
     time::{Duration, Instant},
@@ -80,45 +83,13 @@ const DEFAULT_NATIVE_SLEEP_ACCURACY: SubsecondNanoseconds = 125_000;
 /// Equivalent to [`std::thread::sleep`], with the following exceptions:
 /// * **Windows**: Automatically selects the best native sleep accuracy generally achieving ~1ms
 /// native sleep accuracy, instead of default ~16ms.
-#[cfg(not(windows))]
 #[inline]
 pub fn native_sleep(duration: Duration) {
-    thread::sleep(duration)
-}
+    #[cfg(windows)]
+    windows::native_sleep(duration);
 
-#[cfg(windows)]
-static MIN_TIME_PERIOD: once_cell::sync::Lazy<winapi::shared::minwindef::UINT> =
-    once_cell::sync::Lazy::new(|| unsafe {
-        use std::mem;
-        use winapi::um::{mmsystem::*, timeapi::timeGetDevCaps};
-
-        let tc_size = mem::size_of::<TIMECAPS>() as u32;
-        let mut tc = TIMECAPS {
-            wPeriodMin: 0,
-            wPeriodMax: 0,
-        };
-
-        if timeGetDevCaps(&mut tc as *mut TIMECAPS, tc_size) == TIMERR_NOERROR {
-            tc.wPeriodMin
-        } else {
-            1
-        }
-    });
-
-/// Asks the OS to put the current thread to sleep for at least the specified amount of time.
-///
-/// Equivalent to [`std::thread::sleep`], with the following exceptions:
-/// * **Windows**: Automatically selects the best native sleep accuracy generally achieving ~1ms
-/// native sleep accuracy, instead of default ~16ms.
-#[cfg(windows)]
-#[inline]
-pub fn native_sleep(duration: Duration) {
-    unsafe {
-        use winapi::um::timeapi::{timeBeginPeriod, timeEndPeriod};
-        timeBeginPeriod(*MIN_TIME_PERIOD);
-        thread::sleep(duration);
-        timeEndPeriod(*MIN_TIME_PERIOD);
-    }
+    #[cfg(not(windows))]
+    thread::sleep(duration);
 }
 
 impl Default for SpinSleeper {
