@@ -9,6 +9,10 @@ use std::time::{Duration, Instant};
 /// Can limit a loop rate to a desired target using
 /// [`LoopHelper::loop_sleep`](struct.LoopHelper.html#method.loop_sleep).
 ///
+/// # Issues
+/// There are known limitations/flaws, see [#19](https://github.com/alexheretic/spin-sleep/issues/19).
+/// `LoopHelper` will probably be deprecated for removal in the future.
+///
 /// # Example
 ///
 /// ```no_run

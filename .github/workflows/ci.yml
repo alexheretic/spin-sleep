@@ -16,12 +16,12 @@ jobs:
         - windows-latest
     steps:
     - run: rustup update stable
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - run: cargo test
 
   rustfmt:
     runs-on: ubuntu-latest
     steps:
     - run: rustup update stable
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - run: cargo fmt -- --check
