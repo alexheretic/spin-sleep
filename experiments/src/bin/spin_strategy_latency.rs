@@ -1,3 +1,4 @@
+//! Measure `SpinStrategy` latencies and spin counts across various wait durations _5ms, 900µs, 5µs, 100ns_.
 use std::time::{Duration, Instant};
 
 fn main() {
@@ -7,7 +8,7 @@ fn main() {
     }
 
     if std::env::args().nth(1).as_deref() == Some("load") {
-        let cpus = num_cpus::get();
+        let cpus = std::thread::available_parallelism().unwrap().into();
         eprintln!("Simulating {cpus} thread load");
         for _ in 0..cpus {
             std::thread::spawn(|| {
@@ -57,7 +58,7 @@ fn main() {
                 "{duration: <6?} {: <13} avg-spins: {:<8} avg-actual: {:?}",
                 format!("{strategy:?}"),
                 spins / 100,
-                Duration::from_nanos(u64::try_from(sum.as_nanos() / 100).unwrap()),
+                sum / 100,
             );
         }
     }

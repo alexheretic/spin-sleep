@@ -1,3 +1,4 @@
+//! Call OS native sleep for **1ns** and see how long it actually takes.
 use std::time::{Duration, Instant};
 
 fn main() {
@@ -6,11 +7,13 @@ fn main() {
         std::process::exit(1);
     }
 
+    const ITS: u32 = 1000;
+
     let mut best = Duration::from_secs(100);
     let mut sum = Duration::from_secs(0);
     let mut worst = Duration::from_secs(0);
 
-    for _ in 0..100 {
+    for _ in 0..ITS {
         let before = Instant::now();
         spin_sleep::native_sleep(Duration::new(0, 1));
         let elapsed = before.elapsed();
@@ -24,9 +27,7 @@ fn main() {
     }
 
     println!(
-        "average: {:?}, best : {:?}, worst: {:?}",
-        Duration::from_nanos(u64::try_from(sum.as_nanos() / 100).unwrap()),
-        best,
-        worst,
+        "average: {:?}, best : {best:?}, worst: {worst:?}",
+        sum / ITS
     );
 }
