@@ -9,7 +9,7 @@ use winapi::{
 
 #[inline]
 pub fn native_sleep(duration: Duration) {
-    let min_time_period = win_min_time_period();
+    let min_time_period = min_time_period();
     unsafe {
         timeBeginPeriod(min_time_period);
         std::thread::sleep(duration);
@@ -17,7 +17,7 @@ pub fn native_sleep(duration: Duration) {
     }
 }
 
-fn win_min_time_period() -> UINT {
+pub(crate) fn min_time_period() -> UINT {
     static MIN_TIME_PERIOD: OnceLock<UINT> = OnceLock::new();
 
     *MIN_TIME_PERIOD.get_or_init(|| {

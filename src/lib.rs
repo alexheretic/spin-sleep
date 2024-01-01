@@ -97,7 +97,7 @@ impl Default for SpinSleeper {
     #[inline]
     fn default() -> Self {
         #[cfg(windows)]
-        let accuracy = *MIN_TIME_PERIOD * 1_000_000;
+        let accuracy = windows::min_time_period() * 1_000_000;
         #[cfg(not(windows))]
         let accuracy = DEFAULT_NATIVE_SLEEP_ACCURACY;
 
@@ -198,13 +198,11 @@ pub enum SpinStrategy {
 /// * !Windows `YieldThread`
 impl Default for SpinStrategy {
     #[inline]
-    #[cfg(windows)]
     fn default() -> Self {
-        Self::SpinLoopHint
-    }
-    #[inline]
-    #[cfg(not(windows))]
-    fn default() -> Self {
+        #[cfg(windows)]
+        return Self::SpinLoopHint;
+
+        #[cfg(not(windows))]
         Self::YieldThread
     }
 }
