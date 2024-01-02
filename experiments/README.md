@@ -16,7 +16,24 @@ average: 53.04µs, best : 7.95µs, worst: 85.238µs
 
 **Windows example output** *
 ```
-average: 2.012432ms, best : 2.0069ms, worst: 2.1455ms
+average: 6.6µs, best: 1.7µs, worst: 844.7µs
+```
+
+### Under high load
+Do the same measurement as above but while all cores are being stressed.
+```sh
+cargo run --bin native_sleep_accuracy --release -- load
+```
+
+**Linux example output** *
+```
+TODO
+```
+
+**Windows example output** *
+```
+Simulating 16 thread load
+average: 106.1µs, best: 1.8µs, worst: 28.0ms
 ```
 
 ## spin_strategy_latency
@@ -47,21 +64,21 @@ warming up...
 **Windows example output** *
 ```
 warming up...
-5ms    None          avg-spins: 158591   avg-actual: 5ms
-5ms    SpinLoopHint  avg-spins: 134568   avg-actual: 5ms
-5ms    YieldThread   avg-spins: 50380    avg-actual: 5.000039ms
-900µs  None          avg-spins: 28491    avg-actual: 900µs
-900µs  SpinLoopHint  avg-spins: 24128    avg-actual: 900.002µs
-900µs  YieldThread   avg-spins: 9070     avg-actual: 900.033µs
-5µs    None          avg-spins: 155      avg-actual: 5µs
-5µs    SpinLoopHint  avg-spins: 133      avg-actual: 5µs
-5µs    YieldThread   avg-spins: 49       avg-actual: 5.042µs
+5ms    None          avg-spins: 176820   avg-actual: 5ms
+5ms    SpinLoopHint  avg-spins: 164060   avg-actual: 5ms
+5ms    YieldThread   avg-spins: 31789    avg-actual: 5.000064ms
+900µs  None          avg-spins: 31791    avg-actual: 900µs
+900µs  SpinLoopHint  avg-spins: 29406    avg-actual: 900.021µs
+900µs  YieldThread   avg-spins: 5700     avg-actual: 900.063µs
+5µs    None          avg-spins: 139      avg-actual: 5µs
+5µs    SpinLoopHint  avg-spins: 160      avg-actual: 5µs
+5µs    YieldThread   avg-spins: 31       avg-actual: 5.09µs
 100ns  None          avg-spins: 0        avg-actual: 100ns
 100ns  SpinLoopHint  avg-spins: 0        avg-actual: 100ns
-100ns  YieldThread   avg-spins: 1        avg-actual: 102ns
+100ns  YieldThread   avg-spins: 0        avg-actual: 172ns
 ```
 
-## spin_strategy_latency under load
+### Under high load
 Do the same measurement as above but while all cores are being stressed.
 
 ```sh
@@ -90,18 +107,18 @@ warming up...
 ```
 Simulating 16 thread load
 warming up...
-5ms    None          avg-spins: 105568   avg-actual: 5.838449ms
-5ms    SpinLoopHint  avg-spins: 79548    avg-actual: 5.608363ms
-5ms    YieldThread   avg-spins: 1        avg-actual: 17.526351ms
-900µs  None          avg-spins: 19461    avg-actual: 1.127537ms
-900µs  SpinLoopHint  avg-spins: 14578    avg-actual: 1.326708ms
-900µs  YieldThread   avg-spins: 1        avg-actual: 17.526448ms
-5µs    None          avg-spins: 108      avg-actual: 5µs
-5µs    SpinLoopHint  avg-spins: 79       avg-actual: 6.298µs
-5µs    YieldThread   avg-spins: 1        avg-actual: 11.417271ms
-100ns  None          avg-spins: 1        avg-actual: 101ns
-100ns  SpinLoopHint  avg-spins: 0        avg-actual: 102ns
-100ns  YieldThread   avg-spins: 0        avg-actual: 7.716038ms
+5ms    None          avg-spins: 140709   avg-actual: 5.604986ms
+5ms    SpinLoopHint  avg-spins: 108241   avg-actual: 5.81583ms
+5ms    YieldThread   avg-spins: 3        avg-actual: 32.039572ms
+900µs  None          avg-spins: 27701    avg-actual: 902.595µs
+900µs  SpinLoopHint  avg-spins: 20202    avg-actual: 1.210891ms
+900µs  YieldThread   avg-spins: 1        avg-actual: 11.297962ms
+5µs    None          avg-spins: 153      avg-actual: 5µs
+5µs    SpinLoopHint  avg-spins: 110      avg-actual: 5µs
+5µs    YieldThread   avg-spins: 1        avg-actual: 13.948654ms
+100ns  None          avg-spins: 0        avg-actual: 100ns
+100ns  SpinLoopHint  avg-spins: 0        avg-actual: 100ns
+100ns  YieldThread   avg-spins: 0        avg-actual: 2.882577ms
 ```
 
-\* _Measured 2022-02-18 with a AMD 5800X_.
+\* _Measured 2023-01-02 with a AMD 5800X_.

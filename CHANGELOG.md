@@ -1,4 +1,6 @@
 # Unreleased (v1.2.0)
+* Windows: Use a high resolution waitable timer when available (>= Windows 10, version 1803).
+* Windows: Replace _winapi_ with _windows-sys_ dependency.
 * Windows: Remove _once_cell_ dependency.
 
 # v1.1.1
