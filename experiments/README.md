@@ -21,7 +21,12 @@ average: 1.055ms, best: 1.054ms, worst: 1.058ms
 
 **Windows example output** *
 ```
-average: 6.6µs, best: 1.7µs, worst: 844.7µs
+==> sleep 1ns
+average: 2.0µs, best: 1.3µs, worst: 13.9µs
+==> sleep 1µs
+average: 446.7µs, best: 2.3µs, worst: 725.8µs
+==> sleep 1ms
+average: 1.775ms, best: 1.502ms, worst: 2.012ms
 ```
 
 ### Under high load
@@ -46,7 +51,12 @@ average: 1.054ms, best: 1.054ms, worst: 1.055ms
 High latency is fairly common.
 ```
 Simulating 16 thread load
-average: 106.1µs, best: 1.8µs, worst: 28.0ms
+==> sleep 1ns
+average: 39.3µs, best: 1.8µs, worst: 36.8ms
+==> sleep 1µs
+average: 14.9ms, best: 2.1µs, worst: 46.9ms
+==> sleep 1ms
+average: 16.025ms, best: 2.004ms, worst: 30.071ms
 ```
 
 ## spin_strategy_latency
