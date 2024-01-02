@@ -24,9 +24,11 @@ pub fn native_sleep(duration: Duration) {
 #[inline]
 pub(crate) fn sleep_accuracy() -> u32 {
     if HIGH_RES_TIMER.with(|t| t.is_ok()) {
-        // high resolution timer is fast on average but has high maximums :(
-        // e.g. `average: 23.4µs, best : 1.3µs, worst: 999.2µs`
-        1_000_000
+        // high resolution timer is fast on average but has high maximums
+        // e.g. `average: 154.7µs, best: 2.6µs, worst: 729.5µs`
+        //
+        // 500-1000µs accuracy should mostly eliminate over-sleeps except under load.
+        700_000
     } else {
         min_time_period() * 1_000_000
     }
