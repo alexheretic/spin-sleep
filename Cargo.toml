@@ -10,7 +10,9 @@ license = "Apache-2.0"
 readme="README.md"
 
 [target.'cfg(windows)'.dependencies]
-winapi = { version = "0.3", features = ["minwindef", "mmsystem", "timeapi"] }
+windows-sys = { version = "0.52", features = [
+    "Win32_Foundation", "Win32_Security", "Win32_System", "Win32_System_Threading", "Win32_Media"
+] }
 
 [dev-dependencies]
 approx = "0.5"

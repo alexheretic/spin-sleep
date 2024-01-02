@@ -81,8 +81,9 @@ const DEFAULT_NATIVE_SLEEP_ACCURACY: SubsecondNanoseconds = 125_000;
 /// **Does not spin.**
 ///
 /// Equivalent to [`std::thread::sleep`], with the following exceptions:
-/// * **Windows**: Automatically selects the best native sleep accuracy generally achieving ~1ms
-/// native sleep accuracy, instead of default ~16ms.
+/// * **Windows** (>= Windows 10, version 1803): Uses a high resolution waitable timer, similar to std in rust >= 1.75.
+/// * **Windows** (< Windows 10, version 1803): Automatically selects the best native sleep accuracy
+///   generally achieving ~1ms native sleep accuracy, instead of default ~16ms.
 #[inline]
 pub fn native_sleep(duration: Duration) {
     #[cfg(windows)]
@@ -97,7 +98,7 @@ impl Default for SpinSleeper {
     #[inline]
     fn default() -> Self {
         #[cfg(windows)]
-        let accuracy = windows::min_time_period() * 1_000_000;
+        let accuracy = windows::sleep_accuracy();
         #[cfg(not(windows))]
         let accuracy = DEFAULT_NATIVE_SLEEP_ACCURACY;
 
