@@ -1,0 +1,13 @@
+[package]
+name = "spin_sleep_util"
+version = "0.1.0"
+edition = "2021"
+authors = ["Alex Butler <alexheretic@gmail.com>"]
+description = "Utils using spin_sleep"
+repository = "https://github.com/alexheretic/spin-sleep"
+keywords = ["sleep", "loop", "interval"]
+license = "Apache-2.0"
+readme = "README.md"
+
+[dependencies]
+spin_sleep = { path = "..", version = "1" }
