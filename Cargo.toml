@@ -1,17 +1,21 @@
 [package]
 name = "spin_sleep"
 version = "1.1.1"
-authors = ["Alex Butler <alexheretic@gmail.com>"]
 edition = "2021"
+authors = ["Alex Butler <alexheretic@gmail.com>"]
 description = "Accurate sleeping. Only use native sleep as far as it can be trusted, then spin."
 repository = "https://github.com/alexheretic/spin-sleep"
 keywords = ["sleep"]
 license = "Apache-2.0"
-readme="README.md"
+readme = "README.md"
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.52", features = [
-    "Win32_Foundation", "Win32_Security", "Win32_System", "Win32_System_Threading", "Win32_Media"
+    "Win32_Foundation",
+    "Win32_Security",
+    "Win32_System",
+    "Win32_System_Threading",
+    "Win32_Media",
 ] }
 
 [dev-dependencies]
@@ -20,3 +24,6 @@ approx = "0.5"
 [features]
 # Controls certain tests that are not deterministic
 nondeterministic_tests = []
+
+[workspace]
+members = ["util"]
