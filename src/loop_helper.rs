@@ -1,3 +1,5 @@
+#![allow(deprecated)]
+
 use super::*;
 use std::time::{Duration, Instant};
 
@@ -8,36 +10,8 @@ use std::time::{Duration, Instant};
 ///
 /// Can limit a loop rate to a desired target using
 /// [`LoopHelper::loop_sleep`](struct.LoopHelper.html#method.loop_sleep).
-///
-/// # Issues
-/// There are known limitations/flaws, see [#19](https://github.com/alexheretic/spin-sleep/issues/19).
-/// `LoopHelper` will probably be deprecated for removal in the future.
-///
-/// # Example
-///
-/// ```no_run
-/// use spin_sleep::LoopHelper;
-///
-/// let mut loop_helper = LoopHelper::builder()
-///     .report_interval_s(0.5) // report every half a second
-///     .build_with_target_rate(250.0); // limit to 250 FPS if possible
-///
-/// let mut current_fps = None;
-///
-/// loop {
-///     let delta = loop_helper.loop_start(); // or .loop_start_s() for f64 seconds
-///
-///     // compute_something(delta);
-///
-///     if let Some(fps) = loop_helper.report_rate() {
-///         current_fps = Some(fps.round());
-///     }
-///
-///     // render_fps(current_fps);
-///
-///     loop_helper.loop_sleep(); // sleeps to achieve a 250 FPS rate
-/// }
-/// ```
+#[doc(hidden)]
+#[deprecated = "Use spin_sleep_util crate"]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LoopHelper {
     target_delta: Duration,
@@ -51,6 +25,8 @@ pub struct LoopHelper {
 }
 
 /// Builds [`LoopHelper`](struct.LoopHelper.html).
+#[doc(hidden)]
+#[deprecated = "Use spin_sleep_util crate"]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct LoopHelperBuilder {
     report_interval: Option<Duration>,
