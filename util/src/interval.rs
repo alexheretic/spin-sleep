@@ -44,13 +44,29 @@ pub struct Interval {
 }
 
 impl Interval {
-    /// Use [`SpinSleeper`] to sleep until the next scheduled tick.
+    /// Use [`SpinSleeper::sleep`] to sleep until the next scheduled tick.
     ///
     /// If the tick is in the past will return without sleeping
     /// computing the next tick based on the configured [`MissedTickBehavior`].
     ///
     /// Returns the tick time.
     pub fn tick(&mut self) -> Instant {
+        self.tick_with_spin(true)
+    }
+
+    /// Use [`spin_sleep::native_sleep`] to sleep until the next scheduled tick.
+    /// **Does not spin.**
+    ///
+    /// If the tick is in the past will return without sleeping
+    /// computing the next tick based on the configured [`MissedTickBehavior`].
+    ///
+    /// Returns the tick time.
+    pub fn tick_no_spin(&mut self) -> Instant {
+        self.tick_with_spin(false)
+    }
+
+    #[inline]
+    fn tick_with_spin(&mut self, spin: bool) -> Instant {
         let tick = self.next_tick;
         let now = Instant::now();
 
@@ -60,13 +76,16 @@ impl Interval {
             return tick;
         }
 
-        self.sleeper.sleep(tick - now);
+        match spin {
+            true => self.sleeper.sleep(tick - now),
+            false => spin_sleep::native_sleep(tick - now),
+        };
 
         self.next_tick = tick + self.period;
         tick
     }
 
-    /// Resets the interval to complete one period after the current time.
+    /// Resets the scheduled next tick to one period after the current time.
     pub fn reset(&mut self) {
         self.next_tick = Instant::now() + self.period;
     }
@@ -97,6 +116,25 @@ impl Interval {
     /// ```
     pub fn period(&self) -> Duration {
         self.period
+    }
+
+    /// Sets a new period.
+    ///
+    /// Does not affect the existing scheduled next tick.
+    ///
+    /// # Example
+    /// ```
+    /// use spin_sleep_util::interval;
+    /// # use std::time::Duration;
+    ///
+    /// let mut i = interval(Duration::from_millis(20));
+    /// i.set_period(Duration::from_secs(1));
+    /// assert_eq!(i.period(), Duration::from_secs(1));
+    /// ```
+    #[track_caller]
+    pub fn set_period(&mut self, period: Duration) {
+        assert!(period > Duration::ZERO, "`period` must be non-zero.");
+        self.period = period;
     }
 
     /// Sets the [`MissedTickBehavior`] strategy that should be used.
