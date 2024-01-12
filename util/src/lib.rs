@@ -12,7 +12,7 @@
 //!     compute_something(); // do loop work
 //!
 //!     // tick: sleep using a SpinSleeper until next tick.
-//!     // The default `Skip` missed ticke behaviour is appropriate for a frame limiter
+//!     // The default `Skip` missed tick behaviour is appropriate for a frame limiter
 //!     interval.tick();
 //! }
 //! ```
