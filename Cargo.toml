@@ -20,6 +20,9 @@ windows-sys = { version = "0.52", features = [
 
 [dev-dependencies]
 approx = "0.5"
+nix = { version = "0.27.1", features = ["time"] }
+scheduler = "0.1.3"
+sudo = "0.6.0"
 
 [features]
 # Controls certain tests that are not deterministic
