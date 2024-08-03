@@ -10,7 +10,7 @@ license = "Apache-2.0"
 readme = "README.md"
 
 [target.'cfg(windows)'.dependencies]
-windows-sys = { version = "0.52", features = [
+windows-sys = { version = "0.59", features = [
     "Win32_Foundation",
     "Win32_Security",
     "Win32_System",
@@ -26,4 +26,4 @@ approx = "0.5"
 nondeterministic_tests = []
 
 [workspace]
-members = ["util"]
+members = ["util", "experiments"]
