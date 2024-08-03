@@ -81,8 +81,8 @@ impl WaitableTimer {
                 TIMER_ALL_ACCESS,
             )
         };
-        match handle {
-            0 => Err(()),
+        match handle.is_null() {
+            true => Err(()),
             _ => Ok(Self { handle }),
         }
     }

@@ -1,3 +1,6 @@
+# Unreleased (1.2.1)
+* Windows: Update _windows-sys_ to 0.59.
+
 # v1.2.0
 * Deprecate `LoopHelper`. Instead use _spin_sleep_util_ crate.
 * Windows: Use a high resolution waitable timer when available (>= Windows 10, version 1803).
