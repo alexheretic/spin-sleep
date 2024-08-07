@@ -1,4 +1,4 @@
-# Unreleased (1.2.1)
+# v1.2.1
 * Windows: Update _windows-sys_ to 0.59.
 
 # v1.2.0
