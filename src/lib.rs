@@ -162,10 +162,11 @@ impl SpinSleeper {
     /// the configured native accuracy. Then spins until the specified instant is reached.
     pub fn sleep_until(self, instant: Instant) {
         let accuracy = Duration::new(0, self.native_accuracy_ns);
-        if Instant::now() >= instant {
+        let start = Instant::now();
+        if start >= instant {
             return;
         }
-        let duration = instant - Instant::now();
+        let duration = instant - start;
         if duration > accuracy {
             native_sleep(duration - accuracy);
         }
