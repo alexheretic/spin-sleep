@@ -158,6 +158,26 @@ impl SpinSleeper {
         }
     }
 
+    /// Puts the [current thread to sleep](fn.native_sleep.html) until instant less
+    /// the configured native accuracy. Then spins until the specified instant is reached.
+    pub fn sleep_until(self, instant: Instant) {
+        let accuracy = Duration::new(0, self.native_accuracy_ns);
+        if Instant::now() >= instant {
+            return;
+        }
+        let duration = instant - Instant::now();
+        if duration > accuracy {
+            native_sleep(duration - accuracy);
+        }
+        // spin until instant
+        while Instant::now() < instant {
+            match self.spin_strategy {
+                SpinStrategy::YieldThread => thread::yield_now(),
+                SpinStrategy::SpinLoopHint => std::hint::spin_loop(),
+            }
+        }
+    }
+
     /// Puts the [current thread to sleep](fn.native_sleep.html) for the give seconds-duration
     /// less the configured native accuracy. Then spins until the specified duration has elapsed.
     pub fn sleep_s(self, seconds: Seconds) {
@@ -182,6 +202,15 @@ impl SpinSleeper {
 /// place of `thread::sleep`.
 pub fn sleep(duration: Duration) {
     SpinSleeper::default().sleep(duration);
+}
+
+/// Puts the [current thread to sleep](fn.native_sleep.html) until instant less
+/// the configured native accuracy. Then spins until the specified instant is reached.
+/// 
+/// Convenience function for `SpinSleeper::default().sleep_until(instant)`. Can directly take
+/// the place of `thread::sleep`.
+pub fn sleep_until(instant: Instant) {
+    SpinSleeper::default().sleep_until(instant);
 }
 
 /// What to do while spinning.
