@@ -163,10 +163,7 @@ impl SpinSleeper {
     pub fn sleep_until(self, instant: Instant) {
         let accuracy = Duration::new(0, self.native_accuracy_ns);
         let start = Instant::now();
-        if start >= instant {
-            return;
-        }
-        let duration = instant - start;
+        let duration = instant.duration_since(start);
         if duration > accuracy {
             native_sleep(duration - accuracy);
         }
