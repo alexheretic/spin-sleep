@@ -158,17 +158,17 @@ impl SpinSleeper {
         }
     }
 
-    /// Puts the [current thread to sleep](fn.native_sleep.html) until instant less
+    /// Puts the [current thread to sleep](fn.native_sleep.html) until deadline less
     /// the configured native accuracy. Then spins until the specified instant is reached.
-    pub fn sleep_until(self, instant: Instant) {
+    pub fn sleep_until(self, deadline: Instant) {
         let accuracy = Duration::new(0, self.native_accuracy_ns);
         let start = Instant::now();
-        let duration = instant.saturating_duration_since(start);
+        let duration = deadline.saturating_duration_since(start);
         if duration > accuracy {
             native_sleep(duration - accuracy);
         }
         // spin until instant
-        while Instant::now() < instant {
+        while Instant::now() < deadline {
             match self.spin_strategy {
                 SpinStrategy::YieldThread => thread::yield_now(),
                 SpinStrategy::SpinLoopHint => std::hint::spin_loop(),
