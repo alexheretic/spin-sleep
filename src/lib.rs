@@ -204,7 +204,7 @@ pub fn sleep(duration: Duration) {
 
 /// Puts the [current thread to sleep](fn.native_sleep.html) until instant less
 /// the configured native accuracy. Then spins until the specified instant is reached.
-/// 
+///
 /// Convenience function for `SpinSleeper::default().sleep_until(instant)`. Can directly take
 /// the place of `thread::sleep`.
 pub fn sleep_until(instant: Instant) {
