@@ -167,7 +167,7 @@ impl SpinSleeper {
         if duration > accuracy {
             native_sleep(duration - accuracy);
         }
-        // spin until instant
+        // spin until deadline
         while Instant::now() < deadline {
             match self.spin_strategy {
                 SpinStrategy::YieldThread => thread::yield_now(),
