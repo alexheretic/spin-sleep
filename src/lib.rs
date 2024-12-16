@@ -141,10 +141,10 @@ impl SpinSleeper {
         self
     }
 
-    /// Puts the [current thread to sleep](fn.native_sleep.html) for the duration less the
-    /// configured native accuracy. Then spins until the specified duration has elapsed.
-    pub fn sleep(self, duration: Duration) {
-        let deadline = Instant::now() + duration;
+    /// The internal `spin_sleep` method that puts the [current thread to sleep](fn.native_sleep.html)
+    /// for the duration less the configured native accuracy, then spins until the specified deadline.
+    #[inline]
+    fn spin_sleep(self, duration: Duration, deadline: Instant) {
         let accuracy = Duration::new(0, self.native_accuracy_ns);
         if duration > accuracy {
             native_sleep(duration - accuracy);
@@ -158,22 +158,19 @@ impl SpinSleeper {
         }
     }
 
+    /// Puts the [current thread to sleep](fn.native_sleep.html) for the duration less the
+    /// configured native accuracy. Then spins until the specified duration has elapsed.
+    pub fn sleep(self, duration: Duration) {
+        let deadline = Instant::now() + duration;
+        self.spin_sleep(duration, deadline);
+    }
+
     /// Puts the [current thread to sleep](fn.native_sleep.html) until deadline less
     /// the configured native accuracy. Then spins until the specified instant is reached.
     pub fn sleep_until(self, deadline: Instant) {
-        let accuracy = Duration::new(0, self.native_accuracy_ns);
         let start = Instant::now();
         let duration = deadline.saturating_duration_since(start);
-        if duration > accuracy {
-            native_sleep(duration - accuracy);
-        }
-        // spin until deadline
-        while Instant::now() < deadline {
-            match self.spin_strategy {
-                SpinStrategy::YieldThread => thread::yield_now(),
-                SpinStrategy::SpinLoopHint => std::hint::spin_loop(),
-            }
-        }
+        self.spin_sleep(duration, deadline);
     }
 
     /// Puts the [current thread to sleep](fn.native_sleep.html) for the give seconds-duration
