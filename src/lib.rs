@@ -144,13 +144,13 @@ impl SpinSleeper {
     /// Puts the [current thread to sleep](fn.native_sleep.html) for the duration less the
     /// configured native accuracy. Then spins until the specified duration has elapsed.
     pub fn sleep(self, duration: Duration) {
-        let start = Instant::now();
+        let deadline = Instant::now() + duration;
         let accuracy = Duration::new(0, self.native_accuracy_ns);
         if duration > accuracy {
             native_sleep(duration - accuracy);
         }
         // spin the rest of the duration
-        while start.elapsed() < duration {
+        while Instant::now() < deadline {
             match self.spin_strategy {
                 SpinStrategy::YieldThread => thread::yield_now(),
                 SpinStrategy::SpinLoopHint => std::hint::spin_loop(),
@@ -187,9 +187,7 @@ impl SpinSleeper {
     /// Puts the [current thread to sleep](fn.native_sleep.html) for the give nanoseconds-duration
     /// less the configured native accuracy. Then spins until the specified duration has elapsed.
     pub fn sleep_ns(self, nanoseconds: Nanoseconds) {
-        let subsec_ns = (nanoseconds % 1_000_000_000) as u32;
-        let seconds = nanoseconds / 1_000_000_000;
-        self.sleep(Duration::new(seconds, subsec_ns))
+        self.sleep(Duration::from_nanos(nanoseconds))
     }
 }
 
