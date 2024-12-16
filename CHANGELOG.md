@@ -1,3 +1,6 @@
+# v1.3.0
+* Add `sleep_until`, `SpinSleeper::sleep_until`.
+
 # v1.2.1
 * Windows: Update _windows-sys_ to 0.59.
 

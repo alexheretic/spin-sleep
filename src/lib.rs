@@ -158,18 +158,17 @@ impl SpinSleeper {
         }
     }
 
-    /// Puts the [current thread to sleep](fn.native_sleep.html) for the duration less the
+    /// Puts the [current thread to sleep](fn.native_sleep.html) for the `duration` less the
     /// configured native accuracy. Then spins until the specified duration has elapsed.
     pub fn sleep(self, duration: Duration) {
         let deadline = Instant::now() + duration;
         self.spin_sleep(duration, deadline);
     }
 
-    /// Puts the [current thread to sleep](fn.native_sleep.html) until deadline less
-    /// the configured native accuracy. Then spins until the specified instant is reached.
+    /// Puts the [current thread to sleep](fn.native_sleep.html) until the `deadline` less
+    /// the configured native accuracy. Then spins until the specified deadline is reached.
     pub fn sleep_until(self, deadline: Instant) {
-        let start = Instant::now();
-        let duration = deadline.saturating_duration_since(start);
+        let duration = deadline.saturating_duration_since(Instant::now());
         self.spin_sleep(duration, deadline);
     }
 
@@ -188,7 +187,7 @@ impl SpinSleeper {
     }
 }
 
-/// Puts the [current thread to sleep](fn.native_sleep.html) for the duration less the
+/// Puts the [current thread to sleep](fn.native_sleep.html) for the `duration` less the
 /// default native accuracy. Then spins until the specified duration has elapsed.
 ///
 /// Convenience function for `SpinSleeper::default().sleep(duration)`. Can directly take the
@@ -197,8 +196,8 @@ pub fn sleep(duration: Duration) {
     SpinSleeper::default().sleep(duration);
 }
 
-/// Puts the [current thread to sleep](fn.native_sleep.html) until instant less
-/// the configured native accuracy. Then spins until the specified instant is reached.
+/// Puts the [current thread to sleep](fn.native_sleep.html) until the `deadline` less
+/// the configured native accuracy. Then spins until the specified deadline is reached.
 ///
 /// Convenience function for `SpinSleeper::default().sleep_until(instant)`. Can directly take
 /// the place of `thread::sleep_until`.
