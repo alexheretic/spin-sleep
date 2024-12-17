@@ -201,8 +201,8 @@ pub fn sleep(duration: Duration) {
 ///
 /// Convenience function for `SpinSleeper::default().sleep_until(instant)`. Can directly take
 /// the place of `thread::sleep_until`.
-pub fn sleep_until(instant: Instant) {
-    SpinSleeper::default().sleep_until(instant);
+pub fn sleep_until(deadline: Instant) {
+    SpinSleeper::default().sleep_until(deadline);
 }
 
 /// What to do while spinning.
