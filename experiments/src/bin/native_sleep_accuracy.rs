@@ -13,8 +13,8 @@ fn main() {
         for _ in 0..cpus {
             std::thread::spawn(|| {
                 use rand::Rng;
-                let mut rng = rand::thread_rng();
-                while rng.gen::<u64>() > 0 {}
+                let mut rng = rand::rng();
+                while rng.random::<u64>() > 0 {}
             });
         }
 
