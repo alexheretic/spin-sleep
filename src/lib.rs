@@ -150,11 +150,13 @@ impl SpinSleeper {
             native_sleep(duration - accuracy);
         }
         // spin the rest of the duration
-        while Instant::now() < deadline {
-            match self.spin_strategy {
-                SpinStrategy::YieldThread => thread::yield_now(),
-                SpinStrategy::SpinLoopHint => std::hint::spin_loop(),
-            }
+        match self.spin_strategy {
+            SpinStrategy::YieldThread => while Instant::now() < deadline {
+                thread::yield_now()
+            },
+            SpinStrategy::SpinLoopHint => while Instant::now() < deadline {
+                std::hint::spin_loop()
+            },
         }
     }
 
