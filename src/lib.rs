@@ -151,12 +151,16 @@ impl SpinSleeper {
         }
         // spin the rest of the duration
         match self.spin_strategy {
-            SpinStrategy::YieldThread => while Instant::now() < deadline {
-                thread::yield_now()
-            },
-            SpinStrategy::SpinLoopHint => while Instant::now() < deadline {
-                std::hint::spin_loop()
-            },
+            SpinStrategy::YieldThread => {
+                while Instant::now() < deadline {
+                    thread::yield_now()
+                }
+            }
+            SpinStrategy::SpinLoopHint => {
+                while Instant::now() < deadline {
+                    std::hint::spin_loop()
+                }
+            }
         }
     }
 
