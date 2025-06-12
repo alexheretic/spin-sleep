@@ -1,3 +1,6 @@
+# Unreleased (1.3.2)
+* Windows: Update _windows-sys_ to 0.60.1.
+
 # v1.3.1
 * Optimise spin strategy handling.
 
