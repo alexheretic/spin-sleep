@@ -1,4 +1,4 @@
-# Unreleased (v1.3.3)
+# v1.3.3
 * Windows: Update _windows-sys_ to 0.61.
 
 # v1.3.2
