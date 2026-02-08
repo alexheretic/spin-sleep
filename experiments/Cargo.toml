@@ -6,4 +6,4 @@ publish = false
 
 [dependencies]
 spin_sleep = { path = ".." }
-rand = "0.9"
+rand = "0.10"

@@ -1,4 +1,5 @@
 //! Call OS native sleep for **1ns, 1µs & 1ms** and see how long it actually takes.
+use rand::RngExt;
 use std::time::{Duration, Instant};
 
 fn main() {
@@ -12,7 +13,6 @@ fn main() {
         eprintln!("Simulating {cpus} thread load");
         for _ in 0..cpus {
             std::thread::spawn(|| {
-                use rand::Rng;
                 let mut rng = rand::rng();
                 while rng.random::<u64>() > 0 {}
             });

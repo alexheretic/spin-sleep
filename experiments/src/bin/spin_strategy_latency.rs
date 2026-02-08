@@ -1,4 +1,5 @@
 //! Measure `SpinStrategy` latencies and spin counts across various wait durations _5ms, 900µs, 5µs, 100ns_.
+use rand::RngExt;
 use std::time::{Duration, Instant};
 
 fn main() {
@@ -12,7 +13,6 @@ fn main() {
         eprintln!("Simulating {cpus} thread load");
         for _ in 0..cpus {
             std::thread::spawn(|| {
-                use rand::Rng;
                 let mut rng = rand::rng();
                 while rng.random::<u64>() > 0 {}
             });
